@@ -477,7 +477,6 @@ function jsonpFetch(url) {
   }
   return fetch(API, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
     body: JSON.stringify(params)
   }).then(function(r){ return r.json(); });
 }
@@ -950,7 +949,6 @@ async function detailSetStatus(orderId, status) {
         var payDate = document.getElementById("pay-date") ? document.getElementById("pay-date").value : "";
         await fetch(API, {
           method:"POST",
-          headers:{"Content-Type":"application/json"},
           body:JSON.stringify({
             action:"saveInvoice",
             orderId:orderId,
@@ -981,7 +979,6 @@ async function detailSetStatus(orderId, status) {
         });
         await fetch(API, {
           method:"POST",
-          headers:{"Content-Type":"application/json"},
           body:JSON.stringify({
             action:"saveReceipt",
             orderId:orderId,
