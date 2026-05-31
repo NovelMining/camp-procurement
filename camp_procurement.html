@@ -463,6 +463,23 @@ const ROLES = {orderer:"Захиалагч",director:"Захирал",accountant
 
 let user=null, orders=[], rowIds={food:0,supply:0}, filters={food:"",supply:""};
 let currentPage=1, totalPages=1, pageSize=20, totalOrders=0;
+var currentUser = null;
+
+function jsonpFetch(url) {
+  return new Promise(function(resolve, reject) {
+    var cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*10000);
+    var script = document.createElement("script");
+    var sep = url.indexOf("?") === -1 ? "?" : "&";
+    script.src = url + sep + "callback=" + cbName;
+    script.onerror = function() { reject(new Error("JSONP error")); document.head.removeChild(script); };
+    window[cbName] = function(data) {
+      resolve(data);
+      delete window[cbName];
+      document.head.removeChild(script);
+    };
+    document.head.appendChild(script);
+  });
+}
 
 async function doLogin(){
   var email = document.getElementById("li-email").value.trim();
@@ -484,7 +501,7 @@ async function doLogin(){
     var r = await fetch(API, {method:"POST", body: JSON.stringify({action:"login", email:email, password:pass})});
     var j = await r.json();
     if (j.success) {
-      user = j.user;
+      user = j.user; currentUser = j.user;
       initApp();
     } else {
       errEl.textContent = j.error || "Нэвтрэх нэр эсвэл нууц үг буруу";
@@ -560,8 +577,7 @@ async function loadOrders(page){
   page = page || currentPage || 1;
   try{
     var url = API+"?action=getOrders&page="+page+"&pageSize="+pageSize;
-    var r = await fetch(url);
-    var j = await r.json();
+    var j = await jsonpFetch(url);
     if(j.success){
       orders = j.data||[];
       currentPage = j.page||1;
@@ -799,8 +815,7 @@ async function loadUsers() {
   var tbl = document.getElementById("users-table");
   tbl.innerHTML = "<div class=loading><div class=spinner></div></div>";
   try {
-    var r = await fetch(API + "?action=getUsers");
-    var j = await r.json();
+    var j = await jsonpFetch(API + "?action=getUsers");
     if (j.success && j.data && j.data.length > 0) {
       var rows = j.data;
       var html = "<table style='width:100%;border-collapse:collapse'><thead><tr style='background:#f9fafb'><th style='padding:8px 12px;text-align:left;font-size:11px;color:#9ca3af'>НЭР</th><th style='padding:8px 12px;text-align:left;font-size:11px;color:#9ca3af'>ИМЭЙЛ</th><th style='padding:8px 12px;text-align:left;font-size:11px;color:#9ca3af'>ҮҮРЭГ</th><th style='padding:8px 12px'></th></tr></thead><tbody>";
@@ -1026,15 +1041,13 @@ async function showOrderDetail(orderId) {
   
   // Fetch order items and invoice
   try {
-    var r = await fetch(API + "?action=getOrderItems&orderId=" + encodeURIComponent(orderId));
-    var j = await r.json();
+    var j = await jsonpFetch(API + "?action=getOrderItems&orderId=" + encodeURIComponent(orderId));
     var items = (j.success && j.data) ? j.data : [];
 
     // Fetch invoice
     var invoiceData = null;
     try {
-      var ri = await fetch(API + "?action=getInvoice&orderId=" + encodeURIComponent(orderId));
-      var ji = await ri.json();
+      var ji = await jsonpFetch(API + "?action=getInvoice&orderId=" + encodeURIComponent(orderId));
       if(ji.success && ji.data) invoiceData = ji.data;
     } catch(e){}
 
@@ -1374,8 +1387,7 @@ async function openInvoiceModal(orderId) {
 
   var items = [];
   try {
-    var r = await fetch(API + "?action=getOrderItems&orderId=" + encodeURIComponent(orderId));
-    var j = await r.json();
+    var j = await jsonpFetch(API + "?action=getOrderItems&orderId=" + encodeURIComponent(orderId));
     if(j.success) items = j.data || [];
   } catch(e){}
 
