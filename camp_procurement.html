@@ -466,14 +466,14 @@ let currentPage=1, totalPages=1, pageSize=20, totalOrders=0;
 var currentUser = null;
 
 function driveImgUrl(url) {
-  if (!url) return "";
-  // Convert https://drive.google.com/file/d/FILE_ID/view to direct image
-  var m = url.match(/\/d\/([a-zA-Z0-9_-]+)\//);
-  if (m) return "https://drive.google.com/thumbnail?id=" + m[1] + "&sz=w800";
-  // open?id= format
-  var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (m2) return "https://drive.google.com/thumbnail?id=" + m2[1] + "&sz=w800";
-  return url;
+  if (!url || typeof url !== "string") return "";
+  try {
+    var m = url.match(/\/d\/([a-zA-Z0-9_-]+)\//);
+    if (m) return "https://drive.google.com/thumbnail?id=" + m[1] + "&sz=w800";
+    var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (m2) return "https://drive.google.com/thumbnail?id=" + m2[1] + "&sz=w800";
+  } catch(e) {}
+  return String(url);
 }
 
 function jsonpFetch(url) {
