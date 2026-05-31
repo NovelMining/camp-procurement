@@ -1102,7 +1102,7 @@ async function showOrderDetail(orderId) {
       html += '</div>';
       if(invoiceData["Зургийн линк"] && invoiceData["Зургийн линк"] !== "") {
         html += '<div style="margin-top:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:6px">Invoice зураг</div>';
-        html += '<img src="'+driveImgUrl(invoiceData['Зургийн линк'])+'" style="max-width:100%;border-radius:8px;border:1px solid var(--border)" onerror="this.style.display='none'" />';
+        html += '<img src="'+driveImgUrl(invoiceData['Зургийн линк'])+'" style="max-width:100%;border-radius:8px;border:1px solid var(--border)" onerror="this.style.display=\'none\'" />';
         html += '</div>';
       }
       html += '</div>';
