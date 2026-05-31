@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кемпийн захиалгын систем</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1a2e4a;--navy2:#243d5c;
+  --green:#22c55e;--green2:#16a34a;--green-bg:#f0fdf4;
+  --blue:#3b82f6;--blue-bg:#eff6ff;
+  --amber:#f59e0b;--amber-bg:#fffbeb;
+  --red:#ef4444;--red-bg:#fef2f2;
+  --purple:#8b5cf6;--purple-bg:#f5f3ff;
+  --text:#111827;--text2:#4b5563;--text3:#9ca3af;
+  --bg:#f3f4f6;--card:#fff;--border:#e5e7eb;
+  --r:12px;--shadow:0 1px 8px rgba(0,0,0,0.06);
+}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%)}
+.login-box{background:#fff;border-radius:20px;padding:40px;width:380px;box-shadow:0 24px 64px rgba(0,0,0,0.25)}
+.login-head{text-align:center;margin-bottom:28px}
+.login-icon{width:56px;height:56px;background:var(--navy);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
+.login-head h1{font-size:18px;font-weight:600}
+.login-head p{font-size:13px;color:var(--text3);margin-top:4px}
+#app{display:none;min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:224px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;overflow-y:auto}
+.sb-logo{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-logo-icon{width:32px;height:32px;background:var(--navy);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sb-logo-text{font-size:13px;font-weight:600;line-height:1.2}
+.sb-logo-sub{font-size:11px;color:var(--text3)}
+.sb-sec{padding:10px 12px 3px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;border-radius:8px;margin:1px 6px;font-size:13px;color:var(--text2);transition:all .12s}
+.sb-item:hover{background:var(--bg);color:var(--text)}
+.sb-item.active{background:var(--green-bg);color:var(--green2);font-weight:500}
+.sb-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sb-user{margin-top:auto;padding:12px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.sb-uname{font-size:12px;font-weight:500}
+.sb-urole{font-size:11px;color:var(--text3)}
+.main{margin-left:224px;flex:1;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.tb-left{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text3)}
+.tb-cur{color:var(--text);font-weight:500}
+.content{padding:20px;flex:1}
+.page{display:none}.page.active{display:block}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.metric{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.metric-lbl{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:6px}
+.metric-val{font-size:24px;font-weight:600}
+.mv-blue{color:var(--blue)}.mv-amber{color:var(--amber)}.mv-green{color:var(--green2)}.mv-navy{color:var(--navy)}
+.wf{display:flex;align-items:center;background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:18px}
+.wf-step{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.wf-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;border:2px solid var(--border);color:var(--text3);flex-shrink:0}
+.wf-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.wf-dot.act{background:var(--navy);border-color:var(--navy);color:#fff}
+.wf-lbl{font-size:11px;color:var(--text3);white-space:nowrap}
+.wf-lbl.done,.wf-lbl.act{color:var(--text)}
+.wf-line{flex:1;height:1px;background:var(--border);min-width:6px;margin:0 4px}
+.wf-line.done{background:var(--green)}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-hd{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:600}
+.card-bd{padding:16px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.fg label{font-size:12px;font-weight:500;color:var(--text2)}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--text);background:#fff;outline:none;transition:border .15s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--green)}
+.fg textarea{resize:vertical;min-height:72px}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.items-hd{display:grid;grid-template-columns:2fr 78px 88px 32px;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:2px}
+.items-hd span{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);letter-spacing:.04em}
+.item-row{display:grid;grid-template-columns:2fr 78px 88px 32px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #f3f4f6}
+.item-row select,.item-row input{width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);background:#fff;outline:none}
+.item-row select:focus,.item-row input:focus{border-color:var(--green)}
+.del-btn{width:26px;height:26px;border:none;background:none;cursor:pointer;color:var(--text3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.del-btn:hover{background:var(--red-bg);color:var(--red)}
+.add-row-btn{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green2);font-weight:500;cursor:pointer;border:none;background:none;padding:10px 0;font-family:inherit}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .12s}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy2)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:var(--green2)}
+.btn-outline{background:#fff;color:var(--text2);border:1px solid var(--border)}.btn-outline:hover{background:var(--bg)}
+.btn-red{background:var(--red);color:#fff}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px}
+.pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.p-blue{background:var(--blue-bg);color:#1d4ed8;border:1px solid #bfdbfe}
+.p-warn{background:var(--amber-bg);color:#92400e;border:1px solid #fde68a}
+.p-green{background:var(--green-bg);color:var(--green2);border:1px solid #bbf7d0}
+.p-red{background:var(--red-bg);color:#991b1b;border:1px solid #fecaca}
+.p-purple{background:var(--purple-bg);color:#5b21b6;border:1px solid #ddd6fe}
+.p-gray{background:#f9fafb;color:var(--text2);border:1px solid var(--border)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);background:#f9fafb;border-bottom:1px solid var(--border)}
+td{padding:10px 13px;font-size:13px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.search-wrap{position:relative;margin-bottom:14px}
+.search-wrap input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff}
+.search-wrap input:focus{border-color:var(--green)}
+.s-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3)}
+.empty{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+.empty-ico{font-size:32px;margin-bottom:10px}
+.loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:32px;color:var(--text3);font-size:13px}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;transform:translateY(60px);opacity:0;transition:all .25s;box-shadow:0 8px 24px rgba(0,0,0,0.15)}
+.toast.show{transform:translateY(0);opacity:1}
+.t-success{background:var(--green);color:#fff}
+.t-error{background:var(--red);color:#fff}
+.t-info{background:var(--navy);color:#fff}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:24px;width:460px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:18px}
+.tab-bar{display:flex;gap:4px;margin-bottom:16px;background:#f3f4f6;padding:4px;border-radius:9px}
+.tab{flex:1;text-align:center;padding:7px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);border:none;background:none;font-family:inherit;transition:all .12s}
+.tab.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+#tech-orders-list input,
+#tech-orders-list select,
+#tech-orders-list textarea {
+  pointer-events: auto !important;
+  cursor: text !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  background: #fff !important;
+}
+#tech-orders-list input[type=number] {
+  cursor: text !important;
+}
+</style>
+</head>
+<body>
+
+<div id="loginPage">
+  <div class="login-box">
+    <div class="login-head">
+      <div class="login-icon">⛏</div>
+      <h1>Кемпийн захиалгын систем</h1>
+      <p>Уурхайн хангамжийн удирдлага</p>
+    </div>
+    <div id="login-error" style="background:#fef2f2;color:#991b1b;padding:8px 12px;border-radius:7px;font-size:12px;margin-bottom:12px;display:none"></div>
+    <div class="fg"><label>Имэйл</label><input id="li-email" type="email" placeholder="name@novel.mn" /></div>
+    <div class="fg"><label>Нууц үг</label><input id="li-pass" type="password" placeholder="••••••" /></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px;margin-top:6px" onclick="doLogin()">Нэвтрэх →</button>
+    <div style="text-align:center;margin-top:14px;font-size:11px;color:var(--text3)">IT Admin: admin@novel.mn / admin123</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-icon">⛏</div>
+        <div><div class="sb-logo-text">Уурхайн систем</div><div class="sb-logo-sub">Захиалгын удирдлага</div></div>
+      </div>
+      <div class="sb-sec">Үндсэн</div>
+      <div class="sb-item active" onclick="goPage('dashboard',this,'','Хяналтын самбар')"><span class="sb-icon">📊</span>Хяналтын самбар</div>
+      <div class="sb-item" onclick="goPage('history',this,'','Захиалгын түүх')"><span class="sb-icon">🕐</span>Захиалгын түүх</div>
+      <div class="sb-sec">Кемп</div>
+      <div id="n-food" class="sb-item" onclick="goPage('food',this,'Кемп','Хоол, хүнс')"><span class="sb-icon">🍽</span>Хоол, хүнс</div>
+      <div id="n-supply" class="sb-item" onclick="goPage('campSupply',this,'Кемп','Хангамж')"><span class="sb-icon">📦</span>Хангамж</div>
+      <div class="sb-sec">Уурхайн засвар</div>
+      <div class="sb-item" onclick="goPage('tech',this,'Уурхайн засвар','Техник')"><span class="sb-icon">⚙️</span>Техник</div>
+      <div class="sb-item" onclick="goPage('mineSupply',this,'Уурхайн засвар','Хангамж')"><span class="sb-icon">🔧</span>Хангамж</div>
+      <div id="n-admin" class="sb-item" onclick="goPage('admin',this,'','Хэрэглэгч удирдлага')" style="display:none"><span class="sb-icon">👤</span>Хэрэглэгч удирдлага</div>
+      <div class="sb-sec">Үйл явц</div>
+      <div id="n-appr" class="sb-item" onclick="goPage('approval',this,'','Зөвшөөрөл')"><span class="sb-icon">✅</span>Зөвшөөрөл</div>
+      <div id="n-pay" class="sb-item" onclick="goPage('payment',this,'','Төлбөр')"><span class="sb-icon">💰</span>Төлбөр</div>
+      <div id="n-inv" class="sb-item" onclick="goPage('invoice',this,'','Invoice')"><span class="sb-icon">🧾</span>Invoice</div>
+      <div id="n-del" class="sb-item" onclick="goPage('delivery',this,'','Тээвэр')"><span class="sb-icon">🚛</span>Тээвэр</div>
+      <div id="n-rec" class="sb-item" onclick="goPage('receipt',this,'','Хүлээн авалт')"><span class="sb-icon">📬</span>Хүлээн авалт</div>
+      <div class="sb-user">
+        <div class="sb-avatar" id="sbAv">?</div>
+        <div style="flex:1;min-width:0"><div class="sb-uname" id="sbNm">-</div><div class="sb-urole" id="sbRl">-</div></div>
+        <div style="cursor:pointer;font-size:12px;color:var(--text3)" onclick="doLogout()">↩</div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="tb-left">
+          <span id="tb-par" style="color:var(--text3)"></span>
+          <span id="tb-sep"></span>
+          <span class="tb-cur" id="tb-cur">Хяналтын самбар</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="tb-badge"></span>
+          <button class="btn btn-outline btn-sm" onclick="loadOrders()">🔄</button>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- DASHBOARD -->
+        <div id="page-dashboard" class="page active">
+          <div class="metrics">
+            <div class="metric"><div class="metric-lbl">Нийт захиалга</div><div class="metric-val mv-navy" id="m-total">—</div></div>
+            <div class="metric"><div class="metric-lbl">Хүлээгдэж буй</div><div class="metric-val mv-amber" id="m-pend">—</div></div>
+            <div class="metric"><div class="metric-lbl">Явцтай</div><div class="metric-val mv-blue" id="m-prog">—</div></div>
+            <div class="metric"><div class="metric-lbl">Дууссан</div><div class="metric-val mv-green" id="m-done">—</div></div>
+          </div>
+          <div class="wf">
+            <div class="wf-step"><div class="wf-dot done">✓</div><span class="wf-lbl done">Захиалга</span></div>
+            <div class="wf-line done"></div>
+            <div class="wf-step"><div class="wf-dot act">2</div><span class="wf-lbl act">Захирал</span></div>
+            <div class="wf-line"></div>
+            <div class="wf-step"><div class="wf-dot">3</div><span class="wf-lbl">Хангамж</span></div>
+            <div class="wf-line"></div>
+            <div class="wf-step"><div class="wf-dot">4</div><span class="wf-lbl">Нягтлан</span></div>
+            <div class="wf-line"></div>
+            <div class="wf-step"><div class="wf-dot">5</div><span class="wf-lbl">Тээвэр</span></div>
+            <div class="wf-line"></div>
+            <div class="wf-step"><div class="wf-dot">6</div><span class="wf-lbl">Хүлээн авалт</span></div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Сүүлийн захиалгууд</div><button class="btn btn-outline btn-sm" onclick="loadOrders()">🔄 Шинэчлэх</button></div>
+            <div id="dash-tbl"><div class="loading"><div class="spinner"></div> Ачааллаж байна...</div></div>
+            <div id="pagination-bar"></div>
+          </div>
+        </div>
+
+        <!-- FOOD ORDER -->
+        <div id="page-food" class="page">
+          <div class="card">
+            <div class="card-hd">
+              <div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">🍽</span><div class="card-title">Хоол, хүнсний захиалга</div></div>
+              <span class="pill p-green">Кемп</span>
+            </div>
+            <div class="card-bd">
+              <div class="fg3" style="margin-bottom:0">
+                <div class="fg"><label>Захиалагч нэр</label><input id="fo-name" placeholder="Овог нэр" /></div>
+                <div class="fg"><label>Байршил / Хэлтэс</label><input id="fo-loc" placeholder="жн: Кемп-А" /></div>
+                <div class="fg"><label>Огноо</label><input type="date" id="fo-date" /></div>
+              </div>
+              <div class="fg2">
+                <div class="fg"><label>Хоолны ээлж</label>
+                  <select id="fo-shift">
+                    <option value="">— Сонгох —</option>
+                    <option>Өглөөний хоол</option><option>Өдрийн хоол</option>
+                    <option>Оройн хоол</option><option>Шөнийн хоол</option>
+                  </select>
+                </div>
+                <div class="fg"><label>Хүний тоо</label><input type="number" id="fo-count" placeholder="жн: 100-110" min="1" /></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div style="font-size:12px;font-weight:600;color:var(--text2)">Хүнсний зүйлс</div>
+                <button class="btn btn-outline btn-sm" onclick="addRow('fo-items','food')">+ Нэмэх</button>
+              </div>
+              <input id="fo-search" type="text" placeholder="🔍 Бүтээгдэхүүн хайх..." oninput="filterDrops('food',this.value)" style="width:100%;padding:7px 11px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;outline:none;margin-bottom:10px" />
+              <div class="items-hd"><span>Бүтээгдэхүүний нэр</span><span>Тоо</span><span>Нэгж</span><span></span></div>
+              <div id="fo-items"></div>
+              <div id="fo-empty" style="padding:14px 0;text-align:center;color:var(--text3);font-size:12px">Жагсаалт хоосон байна</div>
+              <div class="fg" style="margin-top:14px"><label>Тэмдэглэл</label><textarea id="fo-note" placeholder="Онцгой шаардлага..."></textarea></div>
+              <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+                <button class="btn btn-outline" onclick="resetForm('food')">✕ Цэвэрлэх</button>
+                <button class="btn btn-primary" onclick="submitOrder('food')">✈ Захиалга илгээх</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CAMP SUPPLY -->
+        <div id="page-campSupply" class="page">
+          <div class="card">
+            <div class="card-hd">
+              <div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">📦</span><div class="card-title">Кемпийн хангамжийн захиалга</div></div>
+              <span class="pill p-blue">Кемп</span>
+            </div>
+            <div class="card-bd">
+              <div class="fg3" style="margin-bottom:0">
+                <div class="fg"><label>Захиалагч нэр</label><input id="cs-name" placeholder="Овог нэр" /></div>
+                <div class="fg"><label>Байршил / Хэлтэс</label><input id="cs-loc" placeholder="жн: Кемп-А" /></div>
+                <div class="fg"><label>Огноо</label><input type="date" id="cs-date" /></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div style="font-size:12px;font-weight:600;color:var(--text2)">Хангамжийн зүйлс</div>
+                <button class="btn btn-outline btn-sm" onclick="addRow('cs-items','supply')">+ Нэмэх</button>
+              </div>
+              <input id="cs-search" type="text" placeholder="🔍 Хайх..." oninput="filterDrops('supply',this.value)" style="width:100%;padding:7px 11px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;outline:none;margin-bottom:10px" />
+              <div class="items-hd"><span>Хангамжийн зүйл</span><span>Тоо</span><span>Нэгж</span><span></span></div>
+              <div id="cs-items"></div>
+              <div id="cs-empty" style="padding:14px 0;text-align:center;color:var(--text3);font-size:12px">Жагсаалт хоосон байна</div>
+              <div class="fg" style="margin-top:14px"><label>Тэмдэглэл</label><textarea id="cs-note" placeholder="Нэмэлт тайлбар..."></textarea></div>
+              <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+                <button class="btn btn-outline" onclick="resetForm('supply')">✕ Цэвэрлэх</button>
+                <button class="btn btn-primary" onclick="submitOrder('supply')">✈ Захиалга илгээх</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TECH / MINE SUPPLY placeholders -->
+        <div id="page-tech" class="page"><div class="card"><div class="card-bd"><div class="empty"><div class="empty-ico">⚙️</div>Техникийн захиалга — удахгүй нэмэгдэнэ</div></div></div></div>
+        <div id="page-mineSupply" class="page"><div class="card"><div class="card-bd"><div class="empty"><div class="empty-ico">🔧</div>Уурхайн хангамж — удахгүй нэмэгдэнэ</div></div></div></div>
+
+        <!-- HISTORY -->
+        <div id="page-history" class="page">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Захиалгын түүх</div><button class="btn btn-outline btn-sm" onclick="loadOrders()">🔄</button></div>
+            <div class="card-bd" style="padding:14px">
+              <div class="search-wrap"><span class="s-icon">🔍</span><input id="hi-search" placeholder="Хайх..." oninput="renderHistory()" /></div>
+              <div id="hi-tbl"><div class="loading"><div class="spinner"></div></div></div>
+              <div id="pagination-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- APPROVAL -->
+        <div id="page-approval" class="page">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Зөвшөөрөл хүлээж буй</div><button class="btn btn-outline btn-sm" onclick="renderApproval()">🔄</button></div>
+            <div id="ap-tbl"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- PAYMENT -->
+        <div id="page-payment" class="page">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Төлбөр баталгаажуулах</div><button class="btn btn-outline btn-sm" onclick="renderPayment()">🔄</button></div>
+            <div id="pa-tbl"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- INVOICE -->
+        <div id="page-invoice" class="page">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Invoice оруулах</div><button class="btn btn-outline btn-sm" onclick="renderInvoice()">🔄</button></div>
+            <div id="in-tbl"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- DELIVERY -->
+        <div id="page-delivery" class="page">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Тээвэр мэдээлэл</div><button class="btn btn-outline btn-sm" onclick="renderDelivery()">🔄</button></div>
+            <div id="de-tbl"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- ADMIN -->
+        <div id="page-admin" class="page">
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-hd">
+              <div class="card-title">⚙️ Системийн тохиргоо</div>
+            </div>
+            <div class="card-bd">
+              <div class="fg2">
+                <div class="fg">
+                  <label>Хуудас бүрт харуулах захиалгын тоо</label>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <select id="setting-pagesize" onchange="saveSettings()" style="flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
+                      <option value="10">10</option>
+                      <option value="20" selected>20</option>
+                      <option value="30">30</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                    </select>
+                    <span style="font-size:13px;color:var(--text3)">захиалга/хуудас</span>
+                  </div>
+                </div>
+                <div class="fg">
+                  <label>Хяналтын самбарт харуулах тоо</label>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <select id="setting-dashcount" onchange="saveSettings()" style="flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
+                      <option value="5">5</option>
+                      <option value="8" selected>8</option>
+                      <option value="10">10</option>
+                      <option value="20">20</option>
+                    </select>
+                    <span style="font-size:13px;color:var(--text3)">захиалга</span>
+                  </div>
+                </div>
+              </div>
+              <div id="settings-saved" style="font-size:12px;color:var(--green2);display:none">✓ Тохиргоо хадгалагдлаа</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-hd">
+              <div class="card-title">👤 Хэрэглэгч нэмэх</div>
+            </div>
+            <div class="card-bd">
+              <div class="fg2">
+                <div class="fg"><label>Нэр</label><input id="au-name" placeholder="Овог нэр" /></div>
+                <div class="fg"><label>Имэйл</label><input id="au-email" type="email" placeholder="name@novel.mn" /></div>
+              </div>
+              <div class="fg2">
+                <div class="fg"><label>Нууц үг</label><input id="au-pass" type="password" placeholder="••••••" /></div>
+                <div class="fg"><label>Үүрэг</label>
+                  <select id="au-role">
+                    <option value="orderer">Захиалагч</option>
+                    <option value="director">Захирал</option>
+                    <option value="accountant">Нягтлан</option>
+                    <option value="supply">Хангамжийн ажилтан</option>
+                    <option value="driver">Тээвэрлэгч</option>
+                    <option value="receiver">Хүлээн авагч</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:flex-end">
+                <button class="btn btn-primary" onclick="saveUser()">+ Хэрэглэгч нэмэх</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd">
+              <div class="card-title">Хэрэглэгчдийн жагсаалт</div>
+              <button class="btn btn-outline btn-sm" onclick="loadUsers()">🔄</button>
+            </div>
+            <div id="users-table"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- RECEIPT -->
+        <div id="page-receipt" class="page">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Хүлээн авалт</div><button class="btn btn-outline btn-sm" onclick="renderReceipt()">🔄</button></div>
+            <div id="re-tbl"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Үйлдэл</div>
+    <div id="modal-body"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
+      <button class="btn btn-outline" onclick="closeModal()">Болих</button>
+      <button class="btn btn-green" id="modal-ok">Батлах</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="detailModal" onclick="if(event.target===this)closeDetail()">
+  <div class="modal" style="width:600px;max-width:96vw">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-title" style="margin:0" id="detail-title">Захиалгын дэлгэрэнгүй</div>
+      <button onclick="closeDetail()" style="border:none;background:none;cursor:pointer;font-size:18px;color:var(--text3)">✕</button>
+    </div>
+    <div id="detail-body"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbwcj7pOxurusgzpPwvMJ98U_OfPRjqJBH7bXoX_jpT-uPn3yqCRPbcz52Zv-iyX_IeKCw/exec";
+
+const FOOD_ITEMS = ["1-р гурил","Аарц","Адуу цул мах","Алаг гоймон","Алимны цуу","Арвайн гурил","BBQ соус","Белизна 1л","Болор цэвэр ус","Бор будаа","Бор гоймон","Бор мөөг","Бор сахар","Бор үзэм","Брокли","Буйцай","Буржгар гоймон 3кг","Буржгар гоймон 5кг","Бууцай","Бөөрөнхий байцаа","Бөөрөнхий перец","Вандуй","Варень савтай","Газ","Гахайн зүссэн мах","Гич","Гүжижан улаан том савтай","Гүнждийн тос","Гүчүгару","Давс","Далайн байцаа","Данхтай жан","Дарк соус","Дашида /том/","Дугуй ааруул 5тай","Дээд гурил","Дүпү","Желатин","Зайдас","Зөгийн бал","Исгэгч том","Их тайга цай том","Кархамал","Каша","Кетчуп","Киви","Кимбаб далайн байцаа","Кимбаб шар манжин","Кофе Jacobs 300гр","Кофе Jacobs 500гр","Nescafe gold кофе","Лаврын навч","Лавшаа гоймон өргөн","Лемон","Лууван","Майонез 3л","Масло","Машиндсан мах","Миёг","Молоко ууттай","Мушгаа гоймон өнгийн","Нунтаг хар перец","Нэг удаа аяга","Огурцы","Ойстор соус том 5л","Олив тос","PANKO тахиа бүрэгч","Пүнтүүз 900гр","Салат навч","Салфетка","Саримас гол","Сармис","Сийр","Сод","Сой Соус","Сонгино","Тайга цай","Тарвас","Таримал огурцы","Тахиа амтлагч шар том ууттай","Тахианы гуя","Тахианы мөч","Тахианы цул","Тахианы цээж","Томатны пасто 1кг","Туна загас","Турмарик","Төмс","Улаан шош","Ургамалын тос 5л","Утлагатай хиам","Хавирга","Халуун соус","Хатаасан жимс","Хатуу цайны идээ","Хаш","Хиам","Хлормин жижиг савтай","Хогны уут том","Хонины цул мах","Хонь цул мах","Хулуу","Хуурай гүчүгари","Хуурай ногоон сонгино","Хуурай сүү шуудай","Хүрэн манжин","Хөрөөдсөн яс","Хөц будаа","Цагаан будаа","Цагаан мөөг","Цай их тайга","Цоо байцаа","Цуу","Цэвэр ус","Чанамал хиам","Чинжүү","Чихэрлэг соус","Шар будаа","Шар манжин","Шар савтай тос 20л","Шар тос","Шар шош","Шилтэй огурцы 3кг","Шилэн үрэл","Шингэн сүү 1л","Шингэн утаа","Шош","Шпагити гоймон 3кг","Элсэн чихэр","Эрдэнэ шиш","Ямаа цул мах","Үзэм","Үрлэн помидор","Үхрийн цул мах","Үхэр булгуги","Үхэр булиан шөл","Үхэр цул мах","Өег дээд гурил","Өндөг","Өрөм","Өтгөрүүлсэн жүүс","Өтгөрүүлсэн жүүс аньс","Өтгөрүүлсэн жүүс чацаргана"];
+
+const SUPPLY_ITEMS = ["Бор цаас","Нэг удаа бээлий","Бок 5кг хүйтэн усны","Хүнсний скоч /богино/ жижиг","Шингэн омо 4л","Утас зүү ком","Өнгийн алчуур","Гарын шингэн саван 5л","Шүдний чигчлүүр","Хүнсний скоч /өргөн том/","Өрөөний гэрэл урт","Шал угаадаг шингэн 5л","Сервис болон мах, талх, боорцогны хавчаар /том,жижиг,дунд/","Хэвтээ хөлдөөгч","Бэлтгэлийн ширээн хөлдөөгч","Гадна талбайн хогийн шүүр том","Гар хатаагч","Шал угаагч шар такси","Үүдний гишгүүр том","Сервис халаагуур тень","Нарийн боовны крем зуурагч","Гурил хэрчигч машин","Ясны хөрөө /ир салдаг, хэрчигч/ цахилгаан 380v","Махны машин цахилгаан 380v","Саарал хөөсөн хайрцаг 80*100","Дээжний шил 150гр","Овен лист нерж зэвэрдэггүй","Жигнүүр лист нерж зэвэрдэггүй","Жигнүүр лист нүхтэй нерж зэвэрдэггүй","25л мармед","30л мармед","Хувцас хийх уут 80см-1.20м /сэмэрдэггүй уут/","Хувцас хатаагч 50-60кг","Пийвар таваг 2-р хоолны /төмөр бөөрөнхий/","Том төмөр урт иштэй хутгуур /хүрзэн/","Сахар.давс.перц.хуурай сүү хийх сав том","Зөөврийн халуун баригч цайны /30л/ цорготой","Гал тогоо наряд дэвтэр","C/60 Ногооны машин","Хоолны халуун сав 30л","Шарагч овен том 3 хаалгатай","Жигнүүр 2 хаалгатай 18 эгнээтэй","Гар миксер /урт иштэй/","Хүнсний тавиур подон","Гурил зуурагч 25кг","Сервис тень","Хоолны халуун баригч цүнх 60*80","Цайны шүүр дунд","Аяга таваг хатаагч сээтэг","Резинин бээлий урт богино холиод","Аяга угаадаг порлон","Нэг удаа малгай","Нэг удаа халбага","Аяга угаагч 5л"];
+
+const UNITS = ["ш","кг","г","л","мл","хайрцаг","уут","боодол","метр","иш","сав","хос"];
+const ROLES = {orderer:"Захиалагч",director:"Захирал",accountant:"Нягтлан",supply:"Хангамжийн ажилтан",driver:"Тээвэрлэгч",receiver:"Хүлээн авагч",admin:"IT Admin"};
+
+let user=null, orders=[], rowIds={food:0,supply:0}, filters={food:"",supply:""};
+let currentPage=1, totalPages=1, pageSize=20, totalOrders=0;
+
+async function doLogin(){
+  var email = document.getElementById("li-email").value.trim();
+  var pass = document.getElementById("li-pass").value.trim();
+  var errEl = document.getElementById("login-error");
+  errEl.style.display = "none";
+
+  // IT Admin default
+  if (email === "admin@novel.mn" && pass === "admin123") {
+    user = {id:"admin", name:"IT Admin", email:email, role:"admin"};
+    initApp();
+    return;
+  }
+
+  if (!email || !pass) { errEl.textContent="Имэйл болон нууц үгээ оруулна уу"; errEl.style.display="block"; return; }
+  
+  toast("Нэвтэрч байна...","info");
+  try {
+    var r = await fetch(API, {method:"POST", body: JSON.stringify({action:"login", email:email, password:pass})});
+    var j = await r.json();
+    if (j.success) {
+      user = j.user;
+      initApp();
+    } else {
+      errEl.textContent = j.error || "Нэвтрэх нэр эсвэл нууц үг буруу";
+      errEl.style.display = "block";
+    }
+  } catch(e) {
+    errEl.textContent = "Сүлжээний алдаа гарлаа";
+    errEl.style.display = "block";
+  }
+}
+
+function initApp() {
+  document.getElementById("loginPage").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("sbAv").textContent=user.name[0].toUpperCase();
+  document.getElementById("sbNm").textContent=user.name;
+  document.getElementById("sbRl").textContent=ROLES[user.role]||user.role;
+  document.getElementById("fo-name").value=user.name;
+  document.getElementById("cs-name").value=user.name;
+  document.getElementById("fo-date").valueAsDate=new Date();
+  document.getElementById("cs-date").valueAsDate=new Date();
+  applyNav();
+  loadSettings();
+  loadOrders();
+  addRow("fo-items","food");addRow("fo-items","food");addRow("fo-items","food");
+  addRow("cs-items","supply");addRow("cs-items","supply");addRow("cs-items","supply");
+  // Set tech form name after DOM ready
+  setTimeout(function() {
+    var txName = document.getElementById("tx-name");
+    if (txName) txName.value = user ? user.name : "";
+  }, 200);
+}
+
+function doLogout(){
+  user=null;
+  document.getElementById("loginPage").style.display="flex";
+  document.getElementById("app").style.display="none";
+}
+
+function applyNav(){
+  var r = user.role;
+  function s(id,show){ var el=document.getElementById(id); if(el) el.style.display=show?"flex":"none"; }
+  s("n-food", r==="orderer");
+  s("n-supply", r==="orderer");
+  s("n-appr", r==="director");
+  s("n-pay", r==="accountant");
+  s("n-inv", r==="supply");
+  s("n-del", r==="driver");
+  s("n-rec", r==="receiver");
+  s("n-admin", r==="admin");
+}
+
+function goPage(id,el,par,cur){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".sb-item").forEach(n=>n.classList.remove("active"));
+  document.getElementById("page-"+id).classList.add("active");
+  el.classList.add("active");
+  document.getElementById("tb-par").textContent=par||"";
+  document.getElementById("tb-sep").textContent=par?" / ":"";
+  document.getElementById("tb-cur").textContent=cur;
+  const pend=orders.filter(o=>o["Статус"]==="Шинэ").length;
+  document.getElementById("tb-badge").innerHTML=pend>0?`<span class="pill p-warn">⏳ ${pend} хүлээгдэж буй</span>`:"";
+  if(id==="admin")loadUsers();
+  if(id==="approval")renderApproval();
+  if(id==="payment")renderPayment();
+  if(id==="invoice")renderInvoice();
+  if(id==="delivery")renderDelivery();
+  if(id==="receipt")renderReceipt();
+  if(id==="history")renderHistory();
+}
+
+async function loadOrders(page){
+  page = page || currentPage || 1;
+  try{
+    var url = API+"?action=getOrders&page="+page+"&pageSize="+pageSize;
+    var r = await fetch(url);
+    var j = await r.json();
+    if(j.success){
+      orders = j.data||[];
+      currentPage = j.page||1;
+      totalPages = j.totalPages||1;
+      totalOrders = j.total||0;
+    }
+  }catch(e){orders=[];}
+  renderDash();
+  renderOrdersPage();
+  renderPagination();
+}
+
+function sBadge(s){
+  const m={"Шинэ":"p-blue","Зөвшөөрөл хүлээж буй":"p-warn","Нягтлан хүлээж буй":"p-purple","Хангамж хүлээж буй":"p-warn","Тээвэрлэж байна":"p-blue","Хүлээн авалт хүлээж буй":"p-blue","Дууссан":"p-green","Татгалзсан":"p-red"};
+  return `<span class="pill ${m[s]||'p-gray'}">${s||"Шинэ"}</span>`;
+}
+
+function fmtDate(d) {
+  if (!d) return "";
+  try {
+    var s = String(d);
+    // If already YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    // If ISO format with T
+    if (s.indexOf("T") > -1) return s.split("T")[0];
+    // Try parsing as date
+    var dt = new Date(s);
+    if (!isNaN(dt)) {
+      return dt.getFullYear() + "-" + String(dt.getMonth()+1).padStart(2,"0") + "-" + String(dt.getDate()).padStart(2,"0");
+    }
+    return s;
+  } catch(e) { return String(d); }
+}
+
+function tbl(list, showDetail) {
+  if (!list.length) return '<div class="empty"><div class="empty-ico">📋</div>Захиалга байхгүй байна</div>';
+  var html = '<div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Захиалагч</th><th>Байршил</th><th>Огноо</th><th>Хүний тоо</th><th>Статус</th><th></th></tr></thead><tbody>';
+  list.forEach(function(o) {
+    html += '<tr>';
+    html += '<td style="font-size:11px;color:var(--text3);font-family:monospace">' + (o["ID"]||"") + '</td>';
+    html += '<td><strong>' + (o["Захиалагч"]||"") + '</strong></td>';
+    html += '<td>' + (o["Байршил"]||"") + '</td>';
+    html += '<td>' + fmtDate(o["Огноо"]) + '</td>';
+    html += '<td>' + (o["Хүний тоо"]||"") + '</td>';
+    html += '<td>' + sBadge(o["Статус"]) + '</td>';
+    html += '<td><button class="btn btn-outline btn-sm" data-oid="' + (o["ID"]||"") + '" onclick="showDetail(this)">Харах</button></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function renderDash(){
+  document.getElementById("m-total").textContent=orders.length;
+  document.getElementById("m-pend").textContent=orders.filter(o=>["Шинэ","Зөвшөөрөл хүлээж буй"].includes(o["Статус"])).length;
+  document.getElementById("m-prog").textContent=orders.filter(function(o){return ["Хангамж хүлээж буй","Нягтлан хүлээж буй","Тээвэрлэж байна","Хүлээн авалт хүлээж буй"].indexOf(o["Статус"])>-1;}).length;
+  document.getElementById("m-done").textContent=orders.filter(o=>o["Статус"]==="Дууссан").length;
+  var dc = 8;
+  try { var s=JSON.parse(localStorage.getItem("appSettings")||"{}"); if(s.dashCount) dc=s.dashCount; } catch(e){}
+  document.getElementById("dash-tbl").innerHTML=tbl(orders.slice().reverse().slice(0,dc));
+}
+
+function renderHistory(){
+  const q=(document.getElementById("hi-search")||{}).value||"";
+  const list=orders.filter(o=>!q||(o["Захиалагч"]||"").includes(q)||(o["Байршил"]||"").includes(q));
+  document.getElementById("hi-tbl").innerHTML=tbl(list.slice().reverse());
+}
+
+function actionTbl(filterSt,cid,btns){
+  var list=orders.filter(function(o){return o["Статус"]===filterSt;});
+  if(!list.length){document.getElementById(cid).innerHTML='<div class="empty"><div class="empty-ico">✅</div>Хүлээж буй захиалга байхгүй</div>';return;}
+  var html='<div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Захиалагч</th><th>Байршил</th><th>Огноо</th><th>Үйлдэл</th></tr></thead><tbody>';
+  list.forEach(function(o){
+    html+='<tr>';
+    html+='<td style="font-size:11px;color:var(--text3);font-family:monospace">'+(o["ID"]||"")+'</td>';
+    html+='<td><strong>'+(o["Захиалагч"]||"")+'</strong></td>';
+    html+='<td>'+(o["Байршил"]||"")+'</td>';
+    html+='<td>'+fmtDate(o["Огноо"])+'</td>';
+    html+='<td><div style="display:flex;gap:6px">'+btns(o["ID"])+'<button class="btn btn-outline btn-sm" data-oid=\''+o["ID"]+'\' onclick="showDetail(this)">Харах</button></div></td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  document.getElementById(cid).innerHTML=html;
+  
+}
+
+function renderApproval(){actionTbl("Шинэ","ap-tbl",id=>`<button class="btn btn-green btn-sm" onclick="setStatus('${id}','Хангамж хүлээж буй')">✅ Зөвшөөрөх</button><button class="btn btn-red btn-sm" onclick="setStatus('${id}','Татгалзсан')">❌ Татгалзах</button>`);}
+function renderPayment(){actionTbl("Нягтлан хүлээж буй","pa-tbl",id=>`<button class="btn btn-green btn-sm" onclick="openPayModal('${id}')">💰 Төлбөр баталгаажуулах</button>`);}
+function renderInvoice(){
+  var list = orders.filter(function(o){return o["Статус"]==="Хангамж хүлээж буй";});
+  if(!list.length){document.getElementById("in-tbl").innerHTML='<div class="empty"><div class="empty-ico">🧾</div>Хүлээж буй захиалга байхгүй</div>';return;}
+  var html='<div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Захиалагч</th><th>Байршил</th><th>Огноо</th><th>Үйлдэл</th></tr></thead><tbody>';
+  list.forEach(function(o){
+    html+='<tr>';
+    html+='<td style="font-size:11px;color:var(--text3);font-family:monospace">'+(o["ID"]||"")+'</td>';
+    html+='<td><strong>'+(o["Захиалагч"]||"")+'</strong></td>';
+    html+='<td>'+(o["Байршил"]||"")+'</td>';
+    html+='<td>'+fmtDate(o["Огноо"])+'</td>';
+    html+='<td><div style="display:flex;gap:6px"><button class="btn btn-outline btn-sm" data-oid="'+o["ID"]+'" onclick="showDetail(this)">Харах</button><button class="btn btn-green btn-sm" data-oid="'+o["ID"]+'" onclick="invoiceBtn(this)">🧾 Invoice оруулах</button></div></td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  document.getElementById("in-tbl").innerHTML=html;
+}
+function renderDelivery(){actionTbl("Тээвэрлэж байна","de-tbl",id=>`<button class="btn btn-green btn-sm" onclick="setStatus('${id}','Хүлээн авалт хүлээж буй')">🚛 Хүргэлт баталгаажуулах</button>`);}
+function renderReceipt(){actionTbl("Хүлээн авалт хүлээж буй","re-tbl",id=>`<button class="btn btn-green btn-sm" onclick="setStatus('${id}','Дууссан')">📦 Хүлээн авсан</button>`);}
+
+async function setStatus(id,status){
+  toast("Шинэчилж байна...","info");
+  try{
+    const r=await fetch(API,{method:"POST",body:JSON.stringify({action:"updateStatus",id,status,sheetName:"Захиалга"})});
+    const j=await r.json();
+    if(j.success){toast("Амжилттай!","success");await loadOrders();renderApproval();renderPayment();renderInvoice();renderDelivery();renderReceipt();}
+    else toast("Алдаа: "+j.error,"error");
+  }catch(e){toast("Сүлжээний алдаа","error");}
+}
+
+function openPayModal(id){
+  document.getElementById("modal-title").textContent="Төлбөр баталгаажуулах";
+  document.getElementById("modal-body").innerHTML=`<div class="fg"><label>Нийт дүн (₮)</label><input id="pm-amt" type="number" placeholder="0" /></div><div class="fg"><label>Тайлбар</label><textarea id="pm-note" placeholder="Нэмэлт тайлбар..."></textarea></div>`;
+  document.getElementById("modal-ok").onclick=()=>{closeModal();setStatus(id,"Тээвэрлэж байна");};
+  document.getElementById("modal").classList.add("open");
+}
+function closeModal(){document.getElementById("modal").classList.remove("open");}
+
+// ROWS
+function getItems(type){return type==="food"?FOOD_ITEMS:SUPPLY_ITEMS;}
+function prodOpts(type,sel){
+  const f=filters[type]||"";
+  const list=f?getItems(type).filter(p=>p.toLowerCase().includes(f.toLowerCase())):getItems(type);
+  return'<option value="">— Сонгох —</option>'+list.map(p=>`<option${p===sel?" selected":""}>${p}</option>`).join("");
+}
+function filterDrops(type,val){
+  filters[type]=val;
+  document.querySelectorAll(`.row-sel-${type}`).forEach(s=>{const c=s.value;s.innerHTML=prodOpts(type,c);});
+}
+function addRow(containerId,type){
+  const c=document.getElementById(containerId);
+  const emptyId=containerId==="fo-items"?"fo-empty":"cs-empty";
+  document.getElementById(emptyId).style.display="none";
+  const id=rowIds[type]++;
+  const d=document.createElement("div");
+  d.className="item-row";d.id=`row-${type}-${id}`;
+  d.innerHTML=`
+    <select class="row-sel-${type}">${prodOpts(type)}</select>
+    <input type="number" min="0" step="0.1" placeholder="0" />
+    <select>${UNITS.map(u=>`<option>${u}</option>`).join("")}</select>
+    <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
+  `;
+  c.appendChild(d);
+}
+function removeRow(type,id,cid,eid){
+  const el=document.getElementById(`row-${type}-${id}`);
+  if(el)el.remove();
+  if(!document.querySelector(`#${cid} .item-row`))document.getElementById(eid).style.display="block";
+}
+
+function resetForm(type){
+  if(type==="food"){
+    document.getElementById("fo-name").value=user?.name||"";
+    document.getElementById("fo-loc").value="";
+    document.getElementById("fo-date").valueAsDate=new Date();
+    document.getElementById("fo-shift").value="";
+    document.getElementById("fo-count").value="";
+    document.getElementById("fo-note").value="";
+    document.getElementById("fo-items").innerHTML="";
+    document.getElementById("fo-empty").style.display="block";
+    rowIds.food=0;
+    addRow("fo-items","food");addRow("fo-items","food");addRow("fo-items","food");
+  } else {
+    document.getElementById("cs-name").value=user?.name||"";
+    document.getElementById("cs-loc").value="";
+    document.getElementById("cs-date").valueAsDate=new Date();
+    document.getElementById("cs-note").value="";
+    document.getElementById("cs-items").innerHTML="";
+    document.getElementById("cs-empty").style.display="block";
+    rowIds.supply=0;
+    addRow("cs-items","supply");addRow("cs-items","supply");addRow("cs-items","supply");
+  }
+}
+
+async function submitOrder(type){
+  const isFood=type==="food";
+  const orderer=document.getElementById(isFood?"fo-name":"cs-name").value.trim();
+  const loc=document.getElementById(isFood?"fo-loc":"cs-loc").value.trim();
+  const date=document.getElementById(isFood?"fo-date":"cs-date").value;
+  const count=isFood?document.getElementById("fo-count").value:"1";
+  if(!orderer||!loc||!date){toast("Бүх талбарыг бөглөнө үү","error");return;}
+  const rows=document.querySelectorAll(`#${isFood?"fo-items":"cs-items"} .item-row`);
+  const items=[];
+  rows.forEach(r=>{
+    const name=r.querySelector("select").value;
+    const qty=r.querySelectorAll("input")[0].value;
+    const unit=r.querySelectorAll("select")[1].value;
+    if(name&&qty)items.push({name,qty,unit});
+  });
+  if(!items.length){toast("Зүйл нэмнэ үү","error");return;}
+  toast("Илгээж байна...","info");
+  try{
+    const r=await fetch(API,{method:"POST",body:JSON.stringify({action:"saveOrder",orderer,location:loc,date,headCount:count,notes:document.getElementById(isFood?"fo-note":"cs-note").value,items,orderType:isFood?"Хоол хүнс":"Хангамж"})});
+    const j=await r.json();
+    if(j.success){toast("Захиалга илгээгдлээ! "+j.id,"success");resetForm(type);loadOrders();}
+    else toast("Алдаа: "+j.error,"error");
+  }catch(e){toast("Сүлжээний алдаа","error");}
+}
+
+function loadSettings() {
+  try {
+    var s = JSON.parse(localStorage.getItem("appSettings")||"{}");
+    if(s.pageSize) {
+      pageSize = s.pageSize;
+      var el = document.getElementById("setting-pagesize");
+      if(el) el.value = s.pageSize;
+    }
+    if(s.dashCount) {
+      var el = document.getElementById("setting-dashcount");
+      if(el) el.value = s.dashCount;
+    }
+  } catch(e){}
+}
+
+function saveSettings() {
+  var ps = parseInt(document.getElementById("setting-pagesize").value)||20;
+  var dc = parseInt(document.getElementById("setting-dashcount").value)||8;
+  pageSize = ps;
+  try {
+    localStorage.setItem("appSettings", JSON.stringify({pageSize:ps, dashCount:dc}));
+  } catch(e){}
+  var el = document.getElementById("settings-saved");
+  if(el) { el.style.display="block"; setTimeout(function(){el.style.display="none";},2000); }
+  loadOrders(1);
+}
+
+async function loadUsers() {
+  var tbl = document.getElementById("users-table");
+  tbl.innerHTML = "<div class=loading><div class=spinner></div></div>";
+  try {
+    var r = await fetch(API + "?action=getUsers");
+    var j = await r.json();
+    if (j.success && j.data && j.data.length > 0) {
+      var rows = j.data;
+      var html = "<table style='width:100%;border-collapse:collapse'><thead><tr style='background:#f9fafb'><th style='padding:8px 12px;text-align:left;font-size:11px;color:#9ca3af'>НЭР</th><th style='padding:8px 12px;text-align:left;font-size:11px;color:#9ca3af'>ИМЭЙЛ</th><th style='padding:8px 12px;text-align:left;font-size:11px;color:#9ca3af'>ҮҮРЭГ</th><th style='padding:8px 12px'></th></tr></thead><tbody>";
+      rows.forEach(function(u) {
+        if (!u["ID"]) return;
+        var uid = String(u["ID"]);
+        var nm = String(u["Нэр"]||"");
+        var em = String(u["Имэйл"]||"");
+        var rawRole = String(u["Үүрэг"]||"");
+        var rl = ROLES[rawRole] || rawRole;
+        html += "<tr style='border-bottom:1px solid #f3f4f6'>";
+        html += "<td style='padding:10px 12px;font-size:13px'><strong>" + nm + "</strong></td>";
+        html += "<td style='padding:10px 12px;font-size:13px'>" + em + "</td>";
+        html += "<td style='padding:10px 12px;font-size:13px'><span style='background:#eff6ff;color:#1d4ed8;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500'>" + rl + "</span></td>";
+        html += "<td style='padding:10px 12px'><button style='background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px' data-id='" + uid + "' onclick=handleDelUser(this)>Устгах</button></td>";
+        html += "</tr>";
+      });
+      html += "</tbody></table>";
+      tbl.innerHTML = html;
+    } else {
+      tbl.innerHTML = "<div style='text-align:center;padding:32px;color:#9ca3af'>Хэрэглэгч байхгүй байна</div>";
+    }
+  } catch(e) {
+    tbl.innerHTML = "<div style='text-align:center;padding:32px;color:#9ca3af'>Алдаа гарлаа</div>";
+  }
+}
+
+function handleDelUser(btn) {
+  var id = btn.getAttribute("data-id");
+  deleteUserById(id);
+}
+
+
+async function saveUser() {
+  var name = document.getElementById("au-name").value.trim();
+  var email = document.getElementById("au-email").value.trim();
+  var pass = document.getElementById("au-pass").value.trim();
+  var role = document.getElementById("au-role").value;
+  if (!name||!email||!pass||!role) { toast("Бүх талбарыг бөглөнө үү","error"); return; }
+  toast("Хадгалж байна...","info");
+  try {
+    var r = await fetch(API, {method:"POST", body: JSON.stringify({
+      action:"saveUser", name:name, email:email, password:pass, role:role, active:true
+    })});
+    var j = await r.json();
+    if (j.success) {
+      toast("Хэрэглэгч амжилттай нэмэгдлээ!","success");
+      document.getElementById("au-name").value="";
+      document.getElementById("au-email").value="";
+      document.getElementById("au-pass").value="";
+      loadUsers();
+    } else toast("Алдаа: "+j.error,"error");
+  } catch(e) { toast("Сүлжээний алдаа","error"); }
+}
+
+async function deleteUserById(id) {
+  if (!confirm("Энэ хэрэглэгчийг устгах уу?")) return;
+  try {
+    var r = await fetch(API, {method:"POST", body: JSON.stringify({action:"deleteUser", id:id})});
+    var j = await r.json();
+    if (j.success) { toast("Устгагдлаа","success"); loadUsers(); }
+    else toast("Алдаа","error");
+  } catch(e) { toast("Алдаа","error"); }
+}
+
+function renderPagination() {
+  var el = document.getElementById("pagination-bar");
+  if(!el) return;
+  if(totalPages <= 1) { el.innerHTML=""; return; }
+  
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">';
+  
+  // Page size selector
+  html += '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)">';
+  html += 'Хуудаст: ';
+  html += '<select onchange="changePageSize(this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;outline:none">';
+  [20,30,50].forEach(function(s){
+    html += '<option value="'+s+'"'+(s===pageSize?' selected':'')+'>'+s+'</option>';
+  });
+  html += '</select>';
+  html += '<span style="color:var(--text3)">Нийт '+totalOrders+' захиалга</span>';
+  html += '</div>';
+
+  // Page buttons
+  html += '<div style="display:flex;align-items:center;gap:6px">';
+  html += '<button onclick="loadOrders(1)" '+(currentPage===1?'disabled':'')+' style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:12px;'+(currentPage===1?'opacity:.4':'')+'">«</button>';
+  html += '<button onclick="loadOrders('+(currentPage-1)+')" '+(currentPage===1?'disabled':'')+' style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:12px;'+(currentPage===1?'opacity:.4':'')+'">‹</button>';
+  
+  // Page numbers
+  var start = Math.max(1, currentPage-2);
+  var end = Math.min(totalPages, currentPage+2);
+  for(var i=start; i<=end; i++){
+    var active = i===currentPage;
+    html += '<button onclick="loadOrders('+i+')" style="padding:5px 10px;border:1px solid '+(active?'var(--navy)':'var(--border)')+';border-radius:6px;background:'+(active?'var(--navy)':'#fff')+';color:'+(active?'#fff':'var(--text)')+';cursor:pointer;font-size:12px;font-weight:'+(active?'600':'400')+'">'+i+'</button>';
+  }
+  
+  html += '<button onclick="loadOrders('+(currentPage+1)+')" '+(currentPage===totalPages?'disabled':'')+' style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:12px;'+(currentPage===totalPages?'opacity:.4':'')+'">›</button>';
+  html += '<button onclick="loadOrders('+totalPages+')" '+(currentPage===totalPages?'disabled':'')+' style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:12px;'+(currentPage===totalPages?'opacity:.4':'')+'">»</button>';
+  html += '</div>';
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function changePageSize(size) {
+  pageSize = parseInt(size);
+  currentPage = 1;
+  loadOrders(1);
+}
+
+function closeDetail() {
+  document.getElementById("detailModal").classList.remove("open");
+}
+
+
+async function detailSetStatus(orderId, status) {
+  toast("Шинэчилж байна...","info");
+  await setStatus(orderId, status);
+  await loadOrders();
+  renderApproval();
+  renderPayment();
+  renderInvoice();
+  renderDelivery();
+  renderReceipt();
+  // Refresh detail view with updated status
+  showOrderDetail(orderId);
+}
+
+function invImgClick() {
+  var el = document.getElementById("inv-img");
+  if(el) el.click();
+}
+
+function invFileChange(input) {
+  var el = document.getElementById("inv-fname");
+  if(el && input.files && input.files[0]) el.textContent = "✓ " + input.files[0].name;
+}
+
+function invSubmitBtn(btn) {
+  var oid = btn.getAttribute("data-oid");
+  var cnt = parseInt(btn.getAttribute("data-cnt"))||0;
+  doSubmitInvoice(oid, cnt);
+}
+
+function invoiceBtn(btn) {
+  var id = btn.getAttribute("data-oid");
+  openInvoiceModal(id);
+}
+
+function showDetail(btn) {
+  var id = btn.getAttribute("data-oid");
+  showOrderDetail(id);
+}
+async function showOrderDetail(orderId) {
+  document.getElementById("detailModal").classList.add("open");
+  document.getElementById("detail-title").textContent = "Захиалга: " + orderId;
+  document.getElementById("detail-body").innerHTML = '<div class="loading"><div class="spinner"></div> Ачааллаж байна...</div>';
+
+  // Find order from local cache
+  var order = orders.find(function(o) { return o["ID"] === orderId; });
+  
+  // Fetch order items and invoice
+  try {
+    var r = await fetch(API + "?action=getOrderItems&orderId=" + encodeURIComponent(orderId));
+    var j = await r.json();
+    var items = (j.success && j.data) ? j.data : [];
+
+    // Fetch invoice
+    var invoiceData = null;
+    try {
+      var ri = await fetch(API + "?action=getInvoice&orderId=" + encodeURIComponent(orderId));
+      var ji = await ri.json();
+      if(ji.success && ji.data) invoiceData = ji.data;
+    } catch(e){}
+
+    var html = '';
+    
+    if (order) {
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Захиалагч</div><div style="font-size:13px;font-weight:500">' + (order["Захиалагч"]||"—") + '</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Байршил</div><div style="font-size:13px;font-weight:500">' + (order["Байршил"]||"—") + '</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Огноо</div><div style="font-size:13px;font-weight:500">' + fmtDate(order["Огноо"]) + '</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Статус</div><div style="font-size:13px">' + sBadge(order["Статус"]) + '</div></div>';
+      if (order["Тайлбар"]) {
+        html += '<div style="grid-column:1/-1;background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Тайлбар</div><div style="font-size:13px">' + order["Тайлбар"] + '</div></div>';
+      }
+      html += '</div>';
+    }
+
+    if (items.length > 0) {
+      html += '<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Бүтээгдэхүүн / Сэлбэг</div>';
+      html += '<table style="width:100%;border-collapse:collapse">';
+      html += '<thead><tr style="background:#f9fafb"><th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text3)">НЭР</th><th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text3)">ТОО</th><th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text3)">НЭГЖ</th></tr></thead><tbody>';
+      items.forEach(function(item) {
+        html += '<tr style="border-bottom:1px solid #f3f4f6">';
+        html += '<td style="padding:9px 12px;font-size:13px">' + (item["Бүтээгдэхүүний нэр"]||item["Нэр"]||"—") + '</td>';
+        html += '<td style="padding:9px 12px;font-size:13px">' + (item["Тоо"]||"—") + '</td>';
+        html += '<td style="padding:9px 12px;font-size:13px">' + (item["Нэгж"]||"—") + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+    } else {
+      html += '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Бүтээгдэхүүний мэдээлэл байхгүй</div>';
+    }
+
+    // Show invoice info if exists
+    if (invoiceData) {
+      html += '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">';
+      html += '<div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">🧾 Invoice мэдээлэл</div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Нийлүүлэгч</div><div style="font-size:13px;font-weight:500">'+(invoiceData["Нийлүүлэгч"]||"—")+'</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Invoice №</div><div style="font-size:13px;font-weight:500">'+(invoiceData["Invoice дугаар"]||"—")+'</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Нийт дүн</div><div style="font-size:13px;font-weight:600;color:var(--navy)">'+(parseFloat(invoiceData["Нийт дүн"]||0).toLocaleString())+'₮</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Төлбөрийн хэлбэр</div><div style="font-size:13px;font-weight:500">'+(invoiceData["Төлбөрийн хэлбэр"]==="cash"?"💵 Бэлэн":invoiceData["Төлбөрийн хэлбэр"]==="credit"?"📋 Зээл":"🏦 Шилжүүлэг")+'</div></div>';
+      html += '</div>';
+      if(invoiceData["Зургийн линк"] && invoiceData["Зургийн линк"] !== "") {
+        html += '<div style="margin-top:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:6px">Invoice зураг</div>';
+        html += '<img src="'+invoiceData['Зургийн линк']+'" style="max-width:100%;border-radius:8px;border:1px solid var(--border)" />';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    // Add action based on role and status
+    if (user && order) {
+      var status = order["Статус"];
+      var role = user.role;
+
+      // Director - approval buttons
+      if (role === "director" && status === "Шинэ") {
+        html += '<div style="margin-top:20px;border-top:2px solid var(--border);padding-top:16px;display:flex;gap:10px">' +
+          '<button onclick="detailSetStatus(\''+orderId+'\',\'Хангамж хүлээж буй\')" style="flex:1;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Зөвшөөрөх</button>' +
+          '<button onclick="detailSetStatus(\''+orderId+'\',\'Татгалзсан\')" style="flex:1;padding:11px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">❌ Татгалзах</button>' +
+        '</div>';
+      }
+
+      // Supply - invoice form
+      if (role === "supply" && status === "Хангамж хүлээж буй") {
+        html += buildInvoiceForm(orderId, items);
+      }
+
+      // Accountant - payment confirmation
+      if (role === "accountant" && status === "Нягтлан хүлээж буй") {
+        html += '<div style="margin-top:20px;border-top:2px solid var(--border);padding-top:16px">' +
+          '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">💰 Төлбөр баталгаажуулах</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">' +
+            '<div><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Нийт дүн (₮)</label>' +
+            '<input id="pay-amount" type="number" placeholder="0" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;outline:none" /></div>' +
+            '<div><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Шилжүүлгийн огноо</label>' +
+            '<input id="pay-date" type="date" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;outline:none" /></div>' +
+          '</div>' +
+          '<div style="margin-bottom:14px"><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Падааны зураг</label>' +
+            '<div onclick="document.getElementById(\'pay-img\').click()" style="border:2px dashed #e5e7eb;border-radius:8px;padding:16px;text-align:center;cursor:pointer">' +
+              '<div style="font-size:20px;margin-bottom:4px">📎</div>' +
+              '<div style="font-size:12px;color:#9ca3af">Падааны зураг сонгох</div>' +
+            '</div>' +
+            '<input type="file" id="pay-img" accept="image/*,.pdf" style="display:none" onchange="document.getElementById(\'pay-fname\').textContent=\'✓ \'+this.files[0].name" />' +
+            '<div id="pay-fname" style="font-size:12px;color:var(--green2);margin-top:4px"></div>' +
+          '</div>' +
+          '<button onclick="detailSetStatus(\''+orderId+'\',\'Тээвэрлэж байна\')" style="width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">💰 Төлбөр баталгаажуулах</button>' +
+        '</div>';
+        // Set today's date
+        setTimeout(function(){var d=document.getElementById("pay-date");if(d)d.valueAsDate=new Date();},100);
+      }
+
+      // Driver - delivery confirmation
+      if (role === "driver" && status === "Тээвэрлэж байна") {
+        html += '<div style="margin-top:20px;border-top:2px solid var(--border);padding-top:16px">' +
+          '<button onclick="detailSetStatus(\''+orderId+'\',\'Хүлээн авалт хүлээж буй\')" style="width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">🚛 Хүргэлт баталгаажуулах</button>' +
+        '</div>';
+      }
+
+      // Receiver - receipt confirmation
+      if (role === "receiver" && status === "Хүлээн авалт хүлээж буй") {
+        html += '<div style="margin-top:20px;border-top:2px solid var(--border);padding-top:16px">' +
+          '<div style="margin-bottom:14px"><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Хүлээн авсны зураг</label>' +
+            '<div onclick="document.getElementById(\'rec-img\').click()" style="border:2px dashed #e5e7eb;border-radius:8px;padding:16px;text-align:center;cursor:pointer">' +
+              '<div style="font-size:20px;margin-bottom:4px">📎</div>' +
+              '<div style="font-size:12px;color:#9ca3af">Зураг сонгох</div>' +
+            '</div>' +
+            '<input type="file" id="rec-img" accept="image/*,.pdf" style="display:none" onchange="document.getElementById(\'rec-fname\').textContent=\'✓ \'+this.files[0].name" />' +
+            '<div id="rec-fname" style="font-size:12px;color:var(--green2);margin-top:4px"></div>' +
+          '</div>' +
+          '<button onclick="detailSetStatus(\''+orderId+'\',\'Дууссан\')" style="width:100%;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">📦 Хүлээн авсан баталгаажуулах</button>' +
+        '</div>';
+      }
+    }
+
+    document.getElementById("detail-body").innerHTML = html;
+  } catch(e) {
+    document.getElementById("detail-body").innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Мэдээлэл татаж чадсангүй</div>';
+  }
+}
+
+function buildInvoiceForm(orderId, items) {
+  var itemRows = "";
+  items.forEach(function(item, i) {
+    var name = item["Бүтээгдэхүүний нэр"]||item["Нэр"]||"";
+    var qty = item["Тоо"]||1;
+    itemRows += '<tr style="border-bottom:1px solid #f3f4f6">';
+    itemRows += '<td style="padding:8px 10px;font-size:13px">' + name + '</td>';
+    itemRows += '<td style="padding:8px 10px;font-size:13px">' + qty + '</td>';
+    itemRows += '<td style="padding:8px 10px"><input type="number" id="inv-up-'+i+'" placeholder="0" oninput="calcInvTotal('+i+','+qty+')" style="width:100%;padding:5px 8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;outline:none" /></td>';
+    itemRows += '<td style="padding:8px 10px;font-weight:500;font-size:13px" id="inv-tot-'+i+'">0 ₮</td>';
+    itemRows += '</tr>';
+  });
+
+  return '<div style="margin-top:20px;border-top:2px solid var(--border);padding-top:16px">' +
+    '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">🧾 Invoice оруулах</div>' +
+    
+    '<div style="margin-bottom:12px">' +
+      '<label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Нийлүүлэгч компани</label>' +
+      '<div style="position:relative">' +
+        '<input id="inv-sup" type="text" placeholder="Компанийн нэр..." autocomplete="off" ' +
+          'oninput="showInvSup(this.value)" ' +
+          'onblur="setTimeout(function(){hideInvSup();saveInvSup();},200)" ' +
+          'style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;outline:none" />' +
+        '<div id="inv-sup-sug" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:7px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:300;max-height:150px;overflow-y:auto;margin-top:2px"></div>' +
+      '</div>' +
+    '</div>' +
+
+    (items.length > 0 ?
+    '<div style="margin-bottom:12px">' +
+      '<label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:8px">Үнэ тогтоолт</label>' +
+      '<table style="width:100%;border-collapse:collapse">' +
+        '<thead><tr style="background:#f9fafb">' +
+          '<th style="padding:7px 10px;text-align:left;font-size:11px;color:#9ca3af">НЭР</th>' +
+          '<th style="padding:7px 10px;text-align:left;font-size:11px;color:#9ca3af">ТОО</th>' +
+          '<th style="padding:7px 10px;text-align:left;font-size:11px;color:#9ca3af">НЭГЖ ҮНЭ ₮</th>' +
+          '<th style="padding:7px 10px;text-align:left;font-size:11px;color:#9ca3af">НИЙТ ₮</th>' +
+        '</tr></thead>' +
+        '<tbody>' + itemRows + '</tbody>' +
+      '</table>' +
+      '<div style="text-align:right;margin-top:8px;font-size:14px;font-weight:600">Нийт дүн: <span id="inv-grand" style="color:var(--navy)">0 ₮</span></div>' +
+    '</div>' : '') +
+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">' +
+      '<div>' +
+        '<label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Invoice дугаар</label>' +
+        '<input id="inv-num" type="text" placeholder="INV-2026-001" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;outline:none" />' +
+      '</div>' +
+      '<div>' +
+        '<label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Төлбөрийн хэлбэр</label>' +
+        '<select id="inv-ptype" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;outline:none">' +
+          '<option value="cash">💵 Бэлэн</option>' +
+          '<option value="credit">📋 Зээл</option>' +
+          '<option value="transfer">🏦 Шилжүүлэг</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="margin-bottom:16px">' +
+      '<label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Invoice зураг</label>' +
+      '<div onclick="invImgClick()" ' +
+        'style="border:2px dashed #e5e7eb;border-radius:8px;padding:16px;text-align:center;cursor:pointer">' +
+        '<div style="font-size:20px;margin-bottom:4px">📎</div>' +
+        '<div style="font-size:12px;color:#9ca3af">Зураг сонгох (JPG, PNG, PDF)</div>' +
+      '</div>' +
+      '<input type="file" id="inv-img" accept="image/*,.pdf" style="display:none" onchange="invFileChange(this)" />' +
+      '<div id="inv-fname" style="font-size:12px;color:var(--green2);margin-top:4px"></div>' +
+    '</div>' +
+
+    '<button onclick="invSubmitBtn(this)" data-oid="' + orderId + '" data-cnt="' + items.length + '" ' +
+      'style="width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">' +
+      '✅ Invoice баталгаажуулах' +
+    '</button>' +
+  '</div>';
+}
+
+function showInvSup(val) {
+  var sug = document.getElementById("inv-sup-sug");
+  if(!sug||!val||val.length<1){if(sug)sug.style.display="none";return;}
+  var matches = supplierDB.filter(function(s){return s.toLowerCase().indexOf(val.toLowerCase())!==-1;}).slice(0,6);
+  if(!matches.length){sug.style.display="none";return;}
+  sug.innerHTML="";
+  matches.forEach(function(s){
+    var item=document.createElement("div");
+    item.textContent=s;
+    item.style.cssText="padding:7px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid #f3f4f6";
+    item.addEventListener("mouseenter",function(){this.style.background="#f0fdf4";});
+    item.addEventListener("mouseleave",function(){this.style.background="";});
+    item.addEventListener("mousedown",function(e){
+      e.preventDefault();
+      document.getElementById("inv-sup").value=s;
+      sug.style.display="none";
+    });
+    sug.appendChild(item);
+  });
+  sug.style.display="block";
+}
+
+function hideInvSup() {
+  var sug = document.getElementById("inv-sup-sug");
+  if(sug) sug.style.display="none";
+}
+
+function saveInvSup() {
+  var el = document.getElementById("inv-sup");
+  if(el && el.value.trim() && supplierDB.indexOf(el.value.trim())===-1) {
+    supplierDB.push(el.value.trim());
+    saveSupplierDB();
+  }
+}
+
+function calcInvTotal(i, qty) {
+  var price = parseFloat(document.getElementById("inv-up-"+i).value)||0;
+  var total = price * qty;
+  var totEl = document.getElementById("inv-tot-"+i);
+  if(totEl) totEl.textContent = total.toLocaleString() + " ₮";
+  var grand = 0;
+  var j = 0;
+  while(document.getElementById("inv-tot-"+j)) {
+    grand += parseFloat(document.getElementById("inv-tot-"+j).textContent.replace(/[^0-9.]/g,""))||0;
+    j++;
+  }
+  var grandEl = document.getElementById("inv-grand");
+  if(grandEl) grandEl.textContent = grand.toLocaleString() + " ₮";
+}
+
+async function doSubmitInvoice(orderId, itemCount) {
+  var supplier = document.getElementById("inv-sup").value.trim();
+  var invNum = document.getElementById("inv-num").value.trim();
+  var ptype = document.getElementById("inv-ptype").value;
+  if(!supplier){toast("Нийлүүлэгч компани оруулна уу","error");return;}
+
+  if(supplier && supplierDB.indexOf(supplier)===-1){supplierDB.push(supplier);saveSupplierDB();}
+
+  var grand = 0;
+  for(var i=0;i<itemCount;i++){
+    var el=document.getElementById("inv-tot-"+i);
+    if(el) grand+=parseFloat(el.textContent.replace(/[^0-9.]/g,""))||0;
+  }
+
+  // Get image as base64
+  var imageData = "";
+  var mimeType = "";
+  var fileName = "";
+  var fileInput = document.getElementById("inv-img");
+  if(fileInput && fileInput.files && fileInput.files[0]) {
+    var file = fileInput.files[0];
+    mimeType = file.type;
+    fileName = file.name;
+    try {
+      imageData = await new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var base64 = e.target.result.split(",")[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    } catch(e){ imageData = ""; }
+  }
+
+  toast("Хадгалж байна...","info");
+  try {
+    var r = await fetch(API,{method:"POST",body:JSON.stringify({
+      action:"saveInvoice",orderId:orderId,supplier:supplier,
+      invoiceNumber:invNum,paymentType:ptype,totalAmount:grand,
+      imageData:imageData,mimeType:mimeType,fileName:fileName
+    })});
+    var j = await r.json();
+    await setStatus(orderId,"Нягтлан хүлээж буй");
+    await loadOrders();
+    toast("Invoice амжилттай баталгаажлаа!","success");
+    renderInvoice();
+    showOrderDetail(orderId);
+  } catch(e){toast("Алдаа гарлаа","error");}
+}
+
+// Supplier autocomplete DB
+var supplierDB = [];
+try { supplierDB = JSON.parse(localStorage.getItem("supplierDB")||"[]"); } catch(e){}
+
+function saveSupplierDB() {
+  try { localStorage.setItem("supplierDB", JSON.stringify(supplierDB)); } catch(e){}
+}
+
+function showSupplierSug(val) {
+  var sug = document.getElementById("inv-supplier-sug");
+  if(!sug) return;
+  if(!val||val.length<1){sug.style.display="none";return;}
+  var matches = supplierDB.filter(function(s){return s.toLowerCase().indexOf(val.toLowerCase())!==-1;}).slice(0,6);
+  if(!matches.length){sug.style.display="none";return;}
+  sug.innerHTML="";
+  matches.forEach(function(s){
+    var item=document.createElement("div");
+    item.textContent=s;
+    item.style.cssText="padding:7px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid #f3f4f6";
+    item.addEventListener("mouseenter",function(){this.style.background="#f0fdf4";});
+    item.addEventListener("mouseleave",function(){this.style.background="";});
+    item.addEventListener("mousedown",function(e){
+      e.preventDefault();
+      document.getElementById("inv-supplier").value=s;
+      sug.style.display="none";
+    });
+    sug.appendChild(item);
+  });
+  sug.style.display="block";
+}
+
+async function openInvoiceModal(orderId) {
+  // Load order items first
+  var order = orders.find(function(o){return o["ID"]===orderId;});
+  document.getElementById("modal-title").textContent = "🧾 Invoice оруулах";
+  document.getElementById("modal").classList.add("open");
+  document.getElementById("modal-body").innerHTML = '<div class="loading"><div class="spinner"></div> Ачааллаж байна...</div>';
+
+  var items = [];
+  try {
+    var r = await fetch(API + "?action=getOrderItems&orderId=" + encodeURIComponent(orderId));
+    var j = await r.json();
+    if(j.success) items = j.data || [];
+  } catch(e){}
+
+  var itemsHtml = "";
+  if(items.length > 0) {
+    itemsHtml = '<div style="margin-bottom:14px">';
+    itemsHtml += '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:8px">Бүтээгдэхүүн / Сэлбэг</div>';
+    itemsHtml += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+    itemsHtml += '<thead><tr style="background:#f9fafb"><th style="padding:7px 10px;text-align:left">Нэр</th><th style="padding:7px 10px;text-align:left">Тоо</th><th style="padding:7px 10px;text-align:left">Нэгж үнэ ₮</th><th style="padding:7px 10px;text-align:left">Нийт ₮</th></tr></thead><tbody>';
+    items.forEach(function(item, i){
+      var name = item["Бүтээгдэхүүний нэр"]||item["Нэр"]||"";
+      var qty = item["Тоо"]||1;
+      itemsHtml += '<tr style="border-bottom:1px solid #f3f4f6">';
+      itemsHtml += '<td style="padding:7px 10px">' + name + '</td>';
+      itemsHtml += '<td style="padding:7px 10px">' + qty + '</td>';
+      itemsHtml += '<td style="padding:7px 10px"><input type="number" id="unit-price-'+i+'" placeholder="0" oninput="calcTotal('+i+','+qty+')" style="width:100%;padding:5px 8px;border:1px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:12px;outline:none" /></td>';
+      itemsHtml += '<td style="padding:7px 10px;font-weight:500" id="total-'+i+'">0 ₮</td>';
+      itemsHtml += '</tr>';
+    });
+    itemsHtml += '</tbody></table>';
+    itemsHtml += '<div style="text-align:right;margin-top:8px;font-size:14px;font-weight:600">Нийт дүн: <span id="grand-total" style="color:var(--navy)">0 ₮</span></div>';
+    itemsHtml += '</div>';
+  }
+
+  document.getElementById("modal-body").innerHTML = `
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Нийлүүлэгч компани</label>
+      <div style="position:relative">
+        <input id="inv-supplier" type="text" placeholder="Компанийн нэр бичнэ үү..." autocomplete="off"
+          oninput="showSupplierSug(this.value)"
+          onblur="setTimeout(function(){var s=document.getElementById('inv-supplier-sug');if(s)s.style.display='none';var v=document.getElementById('inv-supplier').value.trim();if(v&&supplierDB.indexOf(v)===-1){supplierDB.push(v);saveSupplierDB();}},200)"
+          style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:13px;outline:none" />
+        <div id="inv-supplier-sug" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:7px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:300;max-height:150px;overflow-y:auto;margin-top:2px"></div>
+      </div>
+    </div>
+    ${itemsHtml}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div>
+        <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Invoice дугаар</label>
+        <input id="inv-number" type="text" placeholder="INV-2026-001" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:13px;outline:none" />
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Төлбөрийн хэлбэр</label>
+        <select id="inv-payment-type" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:13px;outline:none">
+          <option value="cash">💵 Бэлэн</option>
+          <option value="credit">📋 Зээл</option>
+          <option value="transfer">🏦 Шилжүүлэг</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Invoice зураг</label>
+      <div id="inv-upload-zone" onclick="document.getElementById('inv-file').click()" style="border:2px dashed #e5e7eb;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .15s">
+        <div style="font-size:24px;margin-bottom:6px">📎</div>
+        <div style="font-size:12px;color:var(--text3)">Зураг сонгох эсвэл чирж тавих</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:4px">JPG, PNG, PDF</div>
+      </div>
+      <input type="file" id="inv-file" accept="image/*,.pdf" style="display:none" onchange="handleInvFile(this)" />
+      <div id="inv-file-name" style="font-size:12px;color:var(--green2);margin-top:6px"></div>
+    </div>
+  `;
+
+  document.getElementById("modal-ok").textContent = "✅ Invoice баталгаажуулах";
+  document.getElementById("modal-ok").onclick = function() { submitInvoice(orderId, items.length); };
+}
+
+function calcTotal(i, qty) {
+  var price = parseFloat(document.getElementById("unit-price-"+i).value)||0;
+  var total = price * qty;
+  document.getElementById("total-"+i).textContent = total.toLocaleString() + " ₮";
+  // Recalc grand total
+  var grand = 0;
+  var j = 0;
+  while(document.getElementById("unit-price-"+j)) {
+    var p = parseFloat(document.getElementById("unit-price-"+j).value)||0;
+    var q = parseFloat(document.getElementById("total-"+j).textContent)||0;
+    grand += parseFloat(document.getElementById("total-"+j).textContent.replace(/[^0-9.]/g,""))||0;
+    j++;
+  }
+  var grandEl = document.getElementById("grand-total");
+  if(grandEl) grandEl.textContent = grand.toLocaleString() + " ₮";
+}
+
+function handleInvFile(input) {
+  if(input.files && input.files[0]) {
+    var fname = input.files[0].name;
+    document.getElementById("inv-file-name").textContent = "✓ " + fname;
+    document.getElementById("inv-upload-zone").style.borderColor = "var(--green)";
+  }
+}
+
+async function submitInvoice(orderId, itemCount) {
+  var supplier = document.getElementById("inv-supplier").value.trim();
+  var invNumber = document.getElementById("inv-number").value.trim();
+  var payType = document.getElementById("inv-payment-type").value;
+  if(!supplier) { toast("Нийлүүлэгч компанийн нэр оруулна уу","error"); return; }
+
+  // Save supplier to DB
+  if(supplier && supplierDB.indexOf(supplier)===-1) {
+    supplierDB.push(supplier);
+    saveSupplierDB();
+  }
+
+  // Calculate grand total
+  var grand = 0;
+  for(var i=0; i<itemCount; i++) {
+    var el = document.getElementById("total-"+i);
+    if(el) grand += parseFloat(el.textContent.replace(/[^0-9.]/g,""))||0;
+  }
+
+  toast("Хадгалж байна...","info");
+  try {
+    var r = await fetch(API, {method:"POST", body: JSON.stringify({
+      action:"saveInvoice",
+      orderId: orderId,
+      supplier: supplier,
+      invoiceNumber: invNumber,
+      paymentType: payType,
+      totalAmount: grand,
+      status: "Нягтлан хүлээж буй"
+    })});
+    await setStatus(orderId, "Нягтлан хүлээж буй");
+    closeModal();
+    toast("Invoice амжилттай баталгаажлаа!","success");
+  } catch(e) {
+    toast("Алдаа гарлаа","error");
+  }
+}
+
+function toast(msg,type){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.className=`toast show t-${type||"info"}`;
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className="toast",3000);
+}
+</script>
+<script>
+const MACHINES = [
+  {t:"Дамп 70тн",n:"TR-6168"},{t:"Экскаватор",n:"EX-620"},{t:"Бульдозер",n:"DZ-608"},
+  {t:"Бульдозер",n:"DZ606"},{t:"Дамп 70тн",n:"TR-6135"},{t:"Дамп 70тн",n:"TR-6050"},
+  {t:"Дамп 70тн",n:"TR-6053"},{t:"Дамп 70тн",n:"TR-6138"},{t:"Дамп 70тн",n:"TR-6054"},
+  {t:"Дамп 70тн",n:"TR-6140"},{t:"Дамп 70тн",n:"TR-6141"},{t:"Дамп 70тн",n:"TR-6142"},
+  {t:"Дамп 70тн",n:"TR-6055"},{t:"Дамп 70тн",n:"TR-6058"},{t:"Дамп 70тн",n:"TR-6059"},
+  {t:"Дамп 70тн",n:"TR-6060"},{t:"Дамп 70тн",n:"TR-6061"},{t:"Дамп 70тн",n:"TR-6063"},
+  {t:"Дамп 70тн",n:"TR-6064"},{t:"Дамп 70тн",n:"TR-6065"},{t:"Дамп 70тн",n:"TR-6069"},
+  {t:"Дамп 70тн",n:"TR-6066"},{t:"Дамп 70тн",n:"TR-6057"},{t:"Дамп 70тн",n:"TR-6067"},
+  {t:"Дамп 70тн",n:"TR-6167"},{t:"Дамп 70тн",n:"TR-6166"},{t:"Дамп 60тн",n:"TR-6165"},
+  {t:"Дамп 70тн",n:"TR-6164"},{t:"Дамп 70тн",n:"TR-6182"},{t:"Дамп 70тн",n:"TR-6183"},
+  {t:"Дамп 70тн",n:"TR-6184"},{t:"Дамп 70тн",n:"TR-6185"},{t:"Дамп 70тн",n:"TR-6186"},
+  {t:"Хөнгөн тэрэг",n:"LV-6019"},{t:"Түлшний машин",n:"ST601"},{t:"Гэрэлт цамхаг",n:"LP606"},
+  {t:"Гэрэлт цамхаг",n:"LP607"},{t:"Генератор",n:"Генератор"},{t:"Гагнуурын сак",n:"Гагнуурын сак"},
+  {t:"Хөнгөн тэрэг",n:"LV6027"},{t:"Хөнгөн тэрэг",n:"LV4224"},{t:"Хөнгөн тэрэг",n:"LV4226"},
+  {t:"Гэрэлт цамхаг",n:"LT435"},{t:"Гэрэлт цамхаг",n:"LT436"},{t:"Howo",n:"ST436"},
+  {t:"Howo",n:"ST1811"},{t:"Генератор /Кемп/",n:"Генератор-Кемп"},{t:"Экскаватор",n:"EX-603"},
+  {t:"Экскаватор",n:"EX-609"},{t:"Экскаватор",n:"EX-611"},{t:"Түлшний машин",n:"ST604"},
+  {t:"Ковш",n:"LO-610"},{t:"Ковш",n:"LO-605"},{t:"Ковш",n:"LO-601"},
+  {t:"Автогрейдер",n:"GR-602"},{t:"Автогрейдер",n:"GR601"},{t:"Дамп 70тн",n:"TR-6108"},
+  {t:"Дамп 60тн",n:"TR-6109"},{t:"Дамп 70тн",n:"TR-6110"},{t:"Дамп 60тн",n:"TR-6111"},
+  {t:"Дамп 70тн",n:"TR-6112"},{t:"Дамп 70тн",n:"TR-6113"},{t:"Дамп 70тн",n:"TR-6114"},
+  {t:"Дамп 70тн",n:"TR-6115"},{t:"Дамп 70тн",n:"TR-6116"},{t:"Дамп 70тн",n:"TR-6117"},
+  {t:"Дамп 70тн",n:"TR-6163"},{t:"Экскаватор",n:"EX-616"},{t:"Дамп 60тн",n:"TR-6180"},
+  {t:"Дамп 70тн",n:"TR-6181"},{t:"Дамп 60тн",n:"TR-6187"},{t:"Дамп 60тн",n:"TR-6188"},
+  {t:"Дамп 60тн",n:"TR-6189"},{t:"Дамп 60тн",n:"TR4225"},{t:"Дамп 60тн",n:"TR4226"},
+  {t:"Хөнгөн тэрэг",n:"LV6013"},{t:"Хөнгөн тэрэг",n:"LV6014"},{t:"Хөнгөн тэрэг",n:"LV6017"},
+  {t:"Хөнгөн тэрэг",n:"LV6020"},{t:"Хөнгөн тэрэг",n:"LV4225"},{t:"Хөнгөн тэрэг",n:"LV6023"},
+  {t:"Автобус /Түрээс/",n:"SV602"},{t:"Автобус",n:"SV603"},{t:"Автобус",n:"SV1810"},
+  {t:"Бульдозер",n:"DZ-611"},{t:"Гэрэлт цамхаг",n:"LT-608"},{t:"Гэрэлт цамхаг",n:"LP-609"},
+  {t:"Генератор /CAT/",n:"Генератор-CAT"},{t:"Мотор",n:"Кемп-Мотор"},
+  {t:"PORTER 2",n:"Портер"},{t:"Хөнгөн тэрэг",n:"LV6044"},
+  {t:"Сэрээт ачигч",n:"ПО-1"},{t:"Сэрээт ачигч",n:"ПО-2"},
+  {t:"Усны машин",n:"WT425"},{t:"Усны машин",n:"WT-603"},
+  {t:"Дамп 60тн",n:"TR-4231"},{t:"Дамп 60тн",n:"TR-4230"},{t:"Дамп 60тн",n:"TR-4227"},
+  {t:"Дамп 60тн",n:"TR-4236"},{t:"Дамп 60тн",n:"TR-4249"},{t:"Дамп 60тн",n:"TR-4800"},
+  {t:"Дамп 60тн",n:"TR-4398"},{t:"Дамп 60тн",n:"TR-4247"},{t:"Дамп 60тн",n:"TR-4244"},
+  {t:"Дамп 60тн",n:"TR-4243"},{t:"Дамп 60тн",n:"TR-4242"},{t:"Цистерн",n:"ST427"},
+  {t:"Howo",n:"ST433"},{t:"Бульдозер /түрээс/",n:"DZ437"},{t:"Бульдозер",n:"DZ433"},
+  {t:"Усны машин /түрээс/",n:"WT428"},{t:"Компрессор",n:"Компрессор-1"},
+  {t:"Компрессор",n:"Компрессор-2"},{t:"Сэрээт ачигч",n:"МЕ602"},
+  {t:"YUTONG",n:"TR1867"},{t:"Дамп 60тн",n:"TR4802"},{t:"DAEWOO 5ТН",n:"DAEWOO"}
+];
+
+const REP_TYPES = ["Мото цагийн засвар","Гэнэтийн засвар","Их засвар","Сэлбэг солих","Оношилгоо","Бусад"];
+
+let spareDB = [];
+try { spareDB = JSON.parse(localStorage.getItem("spareDB")||"[]"); } catch(e){}
+let spareRowIds = {};
+let techOrderId = 0;
+
+function saveSpareDB() {
+  try { localStorage.setItem("spareDB", JSON.stringify(spareDB)); } catch(e){}
+}
+
+function machineOpts() {
+  var html = '<option value="">— Техник сонгох —</option>';
+  MACHINES.forEach(function(m) {
+    html += '<option value="' + m.n + '">' + m.n + ' — ' + m.t + '</option>';
+  });
+  return html;
+}
+
+function repOpts() {
+  var html = '<option value="">— Засварын төрөл —</option>';
+  REP_TYPES.forEach(function(r) {
+    html += '<option>' + r + '</option>';
+  });
+  return html;
+}
+
+function addSpareRow(ordId) {
+  if (!spareRowIds[ordId]) spareRowIds[ordId] = 0;
+  var rid = spareRowIds[ordId]++;
+  var uid = ordId + "_" + rid;
+  var container = document.getElementById("spare-list-" + ordId);
+  var emptyEl = document.getElementById("spare-empty-" + ordId);
+  if (emptyEl) emptyEl.style.display = "none";
+
+  var row = document.createElement("div");
+  row.id = "spare-" + uid;
+  row.style.cssText = "display:grid;grid-template-columns:1fr 70px 28px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #f3f4f6;position:relative";
+
+  var nameWrap = document.createElement("div");
+  nameWrap.style.position = "relative";
+
+  var nameInput = document.createElement("input");
+  nameInput.id = "sn-" + uid;
+  nameInput.type = "text";
+  nameInput.placeholder = "Сэлбэгийн нэр...";
+  nameInput.autocomplete = "off";
+  nameInput.style.cssText = "width:100%;padding:6px 9px;border:1px solid #e5e7eb;border-radius:7px;font-family:inherit;font-size:12px;outline:none;background:#fff;cursor:text;pointer-events:auto";
+  nameInput.oninput = function() { showSug(uid, this.value); };
+  nameInput.onblur = function() { var v = this.value; setTimeout(function() { hideSug(uid, v); }, 200); };
+  nameInput.readOnly = false;
+  nameInput.disabled = false;
+
+  var sugBox = document.createElement("div");
+  sugBox.id = "sug-" + uid;
+  sugBox.style.cssText = "display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:7px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:200;max-height:160px;overflow-y:auto;margin-top:2px";
+
+  nameWrap.appendChild(nameInput);
+  nameWrap.appendChild(sugBox);
+
+  var qtyInput = document.createElement("input");
+  qtyInput.id = "sq-" + uid;
+  qtyInput.type = "number";
+  qtyInput.min = "0";
+  qtyInput.placeholder = "0";
+  qtyInput.style.cssText = "width:100%;padding:6px 9px;border:1px solid #e5e7eb;border-radius:7px;font-family:inherit;font-size:12px;outline:none;background:#fff;cursor:text;pointer-events:auto";
+
+  var delBtn = document.createElement("button");
+  delBtn.textContent = "✕";
+  delBtn.style.cssText = "width:26px;height:26px;border:none;background:none;cursor:pointer;color:#9ca3af;border-radius:6px;font-size:13px";
+  delBtn.addEventListener("click", function() { removeSpare(uid, ordId); });
+
+  row.appendChild(nameWrap);
+  row.appendChild(qtyInput);
+  row.appendChild(delBtn);
+  container.appendChild(row);
+}
+
+function showSug(uid, val) {
+  var sug = document.getElementById("sug-" + uid);
+  if (!sug) return;
+  if (!val || val.length < 1) { sug.style.display = "none"; return; }
+  var matches = spareDB.filter(function(s) {
+    return s.toLowerCase().indexOf(val.toLowerCase()) !== -1;
+  }).slice(0, 8);
+  if (!matches.length) { sug.style.display = "none"; return; }
+  sug.innerHTML = "";
+  matches.forEach(function(s) {
+    var item = document.createElement("div");
+    item.textContent = s;
+    item.style.cssText = "padding:7px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid #f3f4f6";
+    item.addEventListener("mouseenter", function() { this.style.background = "#f0fdf4"; });
+    item.addEventListener("mouseleave", function() { this.style.background = ""; });
+    item.addEventListener("mousedown", function(e) {
+      e.preventDefault();
+      var nameInput = document.getElementById("sn-" + uid);
+      if (nameInput) nameInput.value = s;
+      sug.style.display = "none";
+      var qtyInput = document.getElementById("sq-" + uid);
+      if (qtyInput) qtyInput.focus();
+    });
+    sug.appendChild(item);
+  });
+  sug.style.display = "block";
+}
+
+function hideSug(uid, val) {
+  var sug = document.getElementById("sug-" + uid);
+  if (sug) sug.style.display = "none";
+  if (val && val.trim() && spareDB.indexOf(val.trim()) === -1) {
+    spareDB.push(val.trim());
+    saveSpareDB();
+  }
+}
+
+function removeSpare(uid, ordId) {
+  var el = document.getElementById("spare-" + uid);
+  if (el) el.remove();
+  var c = document.getElementById("spare-list-" + ordId);
+  if (c && c.children.length === 0) {
+    var emp = document.getElementById("spare-empty-" + ordId);
+    if (emp) emp.style.display = "block";
+  }
+}
+
+function buildTechCard(id) {
+  var card = document.createElement("div");
+  card.id = "tord-" + id;
+  card.style.cssText = "border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:14px;background:#fafafa;position:relative";
+
+  card.innerHTML =
+    '<div style="position:absolute;top:12px;right:12px;cursor:pointer;color:#9ca3af;font-size:13px" onclick="removeTechOrder(' + id + ')">✕</div>' +
+    '<div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em">Захиалга #' + (id+1) + '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">' +
+      '<div><label style="font-size:12px;font-weight:500;color:#4b5563;display:block;margin-bottom:5px">Техникийн дугаар</label>' +
+      '<select id="tm-' + id + '" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:13px;outline:none">' + machineOpts() + '</select></div>' +
+      '<div><label style="font-size:12px;font-weight:500;color:#4b5563;display:block;margin-bottom:5px">Засварын төрөл</label>' +
+      '<select id="tr-' + id + '" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:13px;outline:none">' + repOpts() + '</select></div>' +
+    '</div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+      '<div style="font-size:12px;font-weight:600;color:#4b5563">Сэлбэг хэрэгсэл</div>' +
+      '<button onclick="addSpareRow(' + id + ')" style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:6px;font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #e5e7eb;background:#fff;color:#4b5563">+ Сэлбэг нэмэх</button>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 70px 28px;gap:8px;padding:6px 0 8px;border-bottom:1px solid #e5e7eb;margin-bottom:2px">' +
+      '<span style="font-size:10px;font-weight:600;text-transform:uppercase;color:#9ca3af">Сэлбэгийн нэр</span>' +
+      '<span style="font-size:10px;font-weight:600;text-transform:uppercase;color:#9ca3af">Тоо</span>' +
+      '<span></span>' +
+    '</div>' +
+    '<div id="spare-list-' + id + '"></div>' +
+    '<div id="spare-empty-' + id + '" style="padding:10px 0;text-align:center;color:#9ca3af;font-size:12px">+ сэлбэг нэмнэ үү</div>' +
+    '<div style="margin-top:12px"><label style="font-size:12px;font-weight:500;color:#4b5563;display:block;margin-bottom:5px">Тайлбар / Доголдлын тодорхойлолт</label>' +
+    '<textarea id="tn-' + id + '" placeholder="Доголдлын шинж тэмдэг..." style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;min-height:60px;outline:none"></textarea></div>';
+
+  return card;
+}
+
+function addTechOrder() {
+  document.getElementById("tech-orders-empty").style.display = "none";
+  var card = buildTechCard(techOrderId++);
+  document.getElementById("tech-orders-list").appendChild(card);
+}
+
+function removeTechOrder(id) {
+  var el = document.getElementById("tord-" + id);
+  if (el) el.remove();
+  if (!document.querySelector("#tech-orders-list [id^='tord-']")) {
+    document.getElementById("tech-orders-empty").style.display = "block";
+  }
+}
+
+function resetTechPage() {
+  document.getElementById("tx-name").value = user ? user.name : "";
+  document.getElementById("tx-date").valueAsDate = new Date();
+  document.getElementById("tech-orders-list").innerHTML = "";
+  document.getElementById("tech-orders-empty").style.display = "block";
+  techOrderId = 0;
+  spareRowIds = {};
+  addTechOrder();
+}
+
+async function submitAllTechOrders() {
+  var orderer = document.getElementById("tx-name").value.trim();
+  var date = document.getElementById("tx-date").value;
+  if (!orderer || !date) { toast("Нэр болон огноог бөглөнө үү", "error"); return; }
+
+  var cards = document.querySelectorAll("#tech-orders-list [id^='tord-']");
+  if (!cards.length) { toast("Захиалга нэмнэ үү", "error"); return; }
+
+  var successCount = 0;
+  for (var i = 0; i < cards.length; i++) {
+    var cardId = cards[i].id.replace("tord-", "");
+    var machine = document.getElementById("tm-" + cardId).value;
+    var reptype = document.getElementById("tr-" + cardId).value;
+    var note = document.getElementById("tn-" + cardId).value;
+    if (!machine || !reptype) { toast("Бүх захиалгын техник, засварын төрлийг бөглөнө үү", "error"); return; }
+
+    var spareItems = [];
+    var spareList = document.getElementById("spare-list-" + cardId);
+    if (spareList) {
+      var rows = spareList.children;
+      for (var j = 0; j < rows.length; j++) {
+        var nameEl = rows[j].querySelector("input[type=text]");
+        var qtyEl = rows[j].querySelector("input[type=number]");
+        var name = nameEl ? nameEl.value.trim() : "";
+        var qty = qtyEl ? qtyEl.value : "1";
+        if (name) spareItems.push({name: name, qty: qty || "1", unit: "ш"});
+      }
+    }
+
+    try {
+      var r = await fetch(API, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "saveOrder",
+          orderer: orderer,
+          location: machine,
+          date: date,
+          headCount: "0",
+          notes: "Засварын төрөл: " + reptype + "\n" + note,
+          items: spareItems,
+          orderType: "Засвар"
+        })
+      });
+      var j2 = await r.json();
+      if (j2.success) successCount++;
+    } catch(e) {}
+  }
+  toast(successCount + " захиалга амжилттай илгээгдлээ!", "success");
+  resetTechPage();
+  loadOrders();
+}
+
+// Build tech page
+document.getElementById("page-tech").innerHTML =
+  '<div class="card">' +
+    '<div class="card-hd">' +
+      '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">⚙️</span><div class="card-title">Засварын захиалга</div></div>' +
+      '<span class="pill p-warn">Уурхайн засвар</span>' +
+    '</div>' +
+    '<div class="card-bd">' +
+      '<div class="fg2" style="margin-bottom:16px">' +
+        '<div class="fg"><label>Захиалагч нэр</label><input id="tx-name" placeholder="Овог нэр" /></div>' +
+        '<div class="fg"><label>Огноо</label><input type="date" id="tx-date" /></div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+        '<div style="font-size:12px;font-weight:600;color:#4b5563">Засварын захиалгууд</div>' +
+        '<button class="btn btn-outline btn-sm" onclick="addTechOrder()">+ Захиалга нэмэх</button>' +
+      '</div>' +
+      '<div id="tech-orders-list"></div>' +
+      '<div id="tech-orders-empty" style="padding:20px;text-align:center;color:#9ca3af;font-size:12px;border:1px dashed #e5e7eb;border-radius:8px;margin-bottom:14px">+ товч дарж захиалга нэмнэ үү</div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+        '<button class="btn btn-outline" onclick="resetTechPage()">✕ Цэвэрлэх</button>' +
+        '<button class="btn btn-primary" onclick="submitAllTechOrders()">✈ Бүгдийг илгээх</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+
+setTimeout(function() {
+  var txDate = document.getElementById("tx-date");
+  if (txDate) txDate.valueAsDate = new Date();
+  addTechOrder();
+}, 100);
+</script>
+</body>
+</html>
