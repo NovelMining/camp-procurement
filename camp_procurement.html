@@ -1175,7 +1175,8 @@ async function showOrderDetail(orderId) {
 
     document.getElementById("detail-body").innerHTML = html;
   } catch(e) {
-    document.getElementById("detail-body").innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Мэдээлэл татаж чадсангүй</div>';
+    console.error('showOrderDetail error:', e);
+    document.getElementById("detail-body").innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Мэдээлэл татаж чадсангүй: '+e.message+'</div>';
   }
 }
 
