@@ -1271,10 +1271,10 @@ async function showOrderDetail(orderId) {
     var supplyExtra = '';
     if (invoiceData && statusIdx >= 3) {
       var payType = invoiceData["Төлбөрийн хэлбэр"] === "cash" ? "💵 Бэлэн" : invoiceData["Төлбөрийн хэлбэр"] === "credit" ? "📋 Зээл" : "🏦 Шилжүүлэг";
-      var amt = parseFloat(invoiceData["Нийт дүн"]||invoiceData["Дүн"]||0);
+      var amt = parseFloat(invoiceData["Дүн "]||invoiceData["Дүн"]||0);
       supplyExtra += '<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px">';
       supplyExtra += '<div style="font-size:11px;color:var(--text3)">Нийлүүлэгч: <strong>'+(invoiceData["Нийлүүлэгч"]||"—")+'</strong></div>';
-      supplyExtra += '<div style="font-size:11px;color:var(--text3)">Invoice №: <strong>'+(invoiceData["Invoice дугаар"]||"—")+'</strong></div>';
+      supplyExtra += '<div style="font-size:11px;color:var(--text3)">Invoice №: <strong>'+(invoiceData["Invoice №"]||"—")+'</strong></div>';
       supplyExtra += '<div style="font-size:11px;color:var(--text3)">Нийт дүн: <strong style="color:#1e40af">'+amt.toLocaleString()+'₮</strong></div>';
       supplyExtra += '<div style="font-size:11px;color:var(--text3)">Төлбөр: <strong>'+payType+'</strong></div>';
       supplyExtra += '</div>';
@@ -1325,7 +1325,7 @@ async function showOrderDetail(orderId) {
         html += '<div style="margin-top:16px;border-top:2px solid var(--border);padding-top:16px">';
         html += '<div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:12px">👔 Захирлын зөвшөөрөл</div>';
         if (invoiceData) {
-          var dirAmt = parseFloat(invoiceData["Нийт дүн"]||invoiceData["Дүн"]||0);
+          var dirAmt = parseFloat(invoiceData["Дүн "]||invoiceData["Дүн"]||0);
           var dirPay = invoiceData["Төлбөрийн хэлбэр"] === "credit" ? "Зээл" : invoiceData["Төлбөрийн хэлбэр"] === "cash" ? "Бэлэн" : "Шилжүүлэг";
           html += '<div style="background:#f9fafb;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px">';
           html += '<strong>'+(invoiceData["Нийлүүлэгч"]||"—")+'</strong> — '+dirAmt.toLocaleString()+'₮ ('+dirPay+')</div>';
@@ -1339,7 +1339,7 @@ async function showOrderDetail(orderId) {
       // Нягтлан - Гүйлгээ
       if (role === "accountant" && status === "Нягтлан хүлээж буй") {
         var isCredit = invoiceData && invoiceData["Төлбөрийн хэлбэр"] === "credit";
-        var invAmt = invoiceData ? parseFloat(invoiceData["Нийт дүн"]||invoiceData["Дүн"]||0) : 0;
+        var invAmt = invoiceData ? parseFloat(invoiceData["Дүн "]||invoiceData["Дүн"]||0) : 0;
         html += '<div style="margin-top:16px;border-top:2px solid var(--border);padding-top:16px">';
         html += '<div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:14px">💰 Гүйлгээ хийх</div>';
         html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">';
