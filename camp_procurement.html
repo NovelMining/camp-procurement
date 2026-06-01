@@ -663,6 +663,7 @@ function tbl(list, showDetail) {
   if (!list.length) return '<div class="empty"><div class="empty-ico">📋</div>Захиалга байхгүй байна</div>';
   var html = '<div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Захиалагч</th><th>Байршил</th><th>Огноо</th><th>Хүний тоо</th><th>Статус</th><th></th></tr></thead><tbody>';
   list.forEach(function(o) {
+    var canEdit = user && (user.role === "Захиалагч") && (o["Статус"] === "Шинэ") && (o["Захиалагч"] === user.name);
     html += '<tr>';
     html += '<td style="font-size:11px;color:var(--text3);font-family:monospace">' + (o["ID"]||"") + '</td>';
     html += '<td><strong>' + (o["Захиалагч"]||"") + '</strong></td>';
@@ -670,7 +671,13 @@ function tbl(list, showDetail) {
     html += '<td>' + fmtDate(o["Огноо"]) + '</td>';
     html += '<td>' + (o["Хүний тоо"]||"") + '</td>';
     html += '<td>' + sBadge(o["Статус"]) + '</td>';
-    html += '<td><button class="btn btn-outline btn-sm" data-oid="' + (o["ID"]||"") + '" onclick="showDetail(this)">Харах</button></td>';
+    html += '<td><div style="display:flex;gap:6px">';
+    html += '<button class="btn btn-outline btn-sm" data-oid="' + (o["ID"]||"") + '" onclick="showDetail(this)">Харах</button>';
+    if (canEdit) {
+      html += '<button class="btn btn-sm" style="background:#f59e0b;color:#fff;border:none" data-oid="' + (o["ID"]||"") + '" onclick="editOrder(this)">✏️ Засах</button>';
+      html += '<button class="btn btn-sm" style="background:#ef4444;color:#fff;border:none" data-oid="' + (o["ID"]||"") + '" onclick="deleteOrder(this)">🗑️ Устгах</button>';
+    }
+    html += '</div></td>';
     html += '</tr>';
   });
   html += '</tbody></table></div>';
@@ -731,6 +738,89 @@ function renderInvoice(){
 }
 function renderDelivery(){actionTbl("Тээвэрлэж байна","de-tbl",id=>`<button class="btn btn-green btn-sm" onclick="setStatus('${id}','Хүлээн авалт хүлээж буй')">🚛 Хүргэлт баталгаажуулах</button>`);}
 function renderReceipt(){actionTbl("Хүлээн авалт хүлээж буй","re-tbl",id=>`<button class="btn btn-green btn-sm" onclick="setStatus('${id}','Дууссан')">📦 Хүлээн авсан</button>`);}
+
+async function deleteOrder(btn) {
+  var id = btn.getAttribute("data-oid");
+  if (!confirm("Захиалга устгахдаа итгэлтэй байна уу?")) return;
+  toast("Устгаж байна...","info");
+  try {
+    var r = await fetch(API, {method:"POST", body:JSON.stringify({action:"deleteOrder", id:id})});
+    var j = await r.json();
+    if (j.success) {
+      toast("Захиалга устгагдлаа","success");
+      await loadOrders();
+      renderDash();
+      renderHistory();
+    } else {
+      toast("Алдаа гарлаа: " + (j.error||""), "error");
+    }
+  } catch(e) { toast("Алдаа гарлаа","error"); }
+}
+
+async function editOrder(btn) {
+  var id = btn.getAttribute("data-oid");
+  var order = orders.find(function(o){ return o["ID"] === id; });
+  if (!order) return;
+  // Show edit modal
+  var modal = document.getElementById("editOrderModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "editOrderModal";
+    modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center";
+    modal.innerHTML = \`
+      <div style="background:var(--card);border-radius:16px;padding:28px;width:90%;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,0.15)">
+        <h3 style="margin:0 0 20px;color:var(--text1)">Захиалга засах</h3>
+        <div style="display:grid;gap:14px">
+          <div>
+            <label style="font-size:12px;color:var(--text3);font-weight:600">БАЙРШИЛ</label>
+            <input id="edit-location" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text1);box-sizing:border-box;margin-top:4px" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--text3);font-weight:600">ОГНОО</label>
+            <input id="edit-date" type="date" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text1);box-sizing:border-box;margin-top:4px" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--text3);font-weight:600">ХҮНИЙ ТОО</label>
+            <input id="edit-count" type="number" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text1);box-sizing:border-box;margin-top:4px" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--text3);font-weight:600">ТЭМДЭГЛЭЛ</label>
+            <textarea id="edit-notes" rows="3" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text1);box-sizing:border-box;margin-top:4px;resize:vertical"></textarea>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+          <button onclick="document.getElementById('editOrderModal').remove()" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text1);cursor:pointer">Болих</button>
+          <button id="edit-save-btn" style="padding:10px 20px;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;font-weight:600">Хадгалах</button>
+        </div>
+      </div>
+    \`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById("edit-location").value = order["Байршил"] || "";
+  var d = order["Огноо"] ? new Date(order["Огноо"]).toISOString().split("T")[0] : "";
+  document.getElementById("edit-date").value = d;
+  document.getElementById("edit-count").value = order["Хүний тоо"] || "";
+  document.getElementById("edit-notes").value = order["Тайлбар"] || "";
+  document.getElementById("edit-save-btn").onclick = async function() {
+    var loc = document.getElementById("edit-location").value.trim();
+    var date = document.getElementById("edit-date").value;
+    var count = document.getElementById("edit-count").value;
+    var notes = document.getElementById("edit-notes").value;
+    if (!loc || !date) { toast("Байршил, огноо заавал бөглөнэ!","error"); return; }
+    toast("Хадгалж байна...","info");
+    try {
+      var r = await fetch(API, {method:"POST", body:JSON.stringify({action:"editOrder", id:id, location:loc, date:date, headCount:count, notes:notes})});
+      var j = await r.json();
+      if (j.success) {
+        toast("Амжилттай хадгалагдлаа","success");
+        document.getElementById("editOrderModal").remove();
+        await loadOrders();
+        renderDash();
+        renderHistory();
+      } else { toast("Алдаа: " + (j.error||""),"error"); }
+    } catch(e) { toast("Алдаа гарлаа","error"); }
+  };
+}
 
 async function setStatus(id,status){
   toast("Шинэчилж байна...","info");
