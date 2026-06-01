@@ -663,7 +663,7 @@ function tbl(list, showDetail) {
   if (!list.length) return '<div class="empty"><div class="empty-ico">📋</div>Захиалга байхгүй байна</div>';
   var html = '<div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Захиалагч</th><th>Байршил</th><th>Огноо</th><th>Хүний тоо</th><th>Статус</th><th></th></tr></thead><tbody>';
   list.forEach(function(o) {
-    var canEdit = user && (user.role === "Захиалагч") && (o["Статус"] === "Шинэ") && (o["Захиалагч"] === user.name);
+    var canEdit = user && (user.role === "Захиалагч" || user.role === "orderer") && (o["Статус"] === "Шинэ") && (o["Захиалагч"] === user.name);
     html += '<tr>';
     html += '<td style="font-size:11px;color:var(--text3);font-family:monospace">' + (o["ID"]||"") + '</td>';
     html += '<td><strong>' + (o["Захиалагч"]||"") + '</strong></td>';
