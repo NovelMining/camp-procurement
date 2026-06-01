@@ -767,7 +767,7 @@ async function editOrder(btn) {
     modal = document.createElement("div");
     modal.id = "editOrderModal";
     modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center";
-    modal.innerHTML = \`
+    modal.innerHTML = `
       <div style="background:var(--card);border-radius:16px;padding:28px;width:90%;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,0.15)">
         <h3 style="margin:0 0 20px;color:var(--text1)">Захиалга засах</h3>
         <div style="display:grid;gap:14px">
@@ -793,7 +793,7 @@ async function editOrder(btn) {
           <button id="edit-save-btn" style="padding:10px 20px;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;font-weight:600">Хадгалах</button>
         </div>
       </div>
-    \`;
+    `;
     document.body.appendChild(modal);
   }
   document.getElementById("edit-location").value = order["Байршил"] || "";
