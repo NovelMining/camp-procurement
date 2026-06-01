@@ -1067,11 +1067,43 @@ function closeDetail() {
 }
 
 
+async function savePaymentDraft(orderId) {
+  var amount = document.getElementById("pay-amount") ? document.getElementById("pay-amount").value : "";
+  var date = document.getElementById("pay-date") ? document.getElementById("pay-date").value : "";
+  if (!amount) { toast("Дүн оруулна уу!", "error"); return; }
+  toast("Акт хадгалж байна...","info");
+  try {
+    var payFile = document.getElementById("pay-img");
+    var imageData = "", mimeType = "", fileName = "";
+    if (payFile && payFile.files && payFile.files[0]) {
+      var compressed = await compressImage(payFile.files[0]);
+      imageData = compressed.base64;
+      mimeType = compressed.mimeType;
+      fileName = compressed.fileName;
+    }
+    var r = await fetch(API, {method:"POST", body:JSON.stringify({
+      action:"savePaymentDraft",
+      orderId:orderId,
+      amount:amount,
+      date:date,
+      imageData:imageData,
+      mimeType:mimeType,
+      fileName:fileName
+    })});
+    var j = await r.json();
+    if (j.success) {
+      toast("Урьдчилсан акт хадгалагдлаа ✅","success");
+    } else {
+      toast("Алдаа: "+(j.error||""),"error");
+    }
+  } catch(e) { toast("Алдаа гарлаа","error"); }
+}
+
 async function detailSetStatus(orderId, status) {
   toast("Шинэчилж байна...","info");
 
-  // Нягтлангийн падааны зураг Drive-д хадгалах
-  if (status === "Тээвэрлэж байна") {
+  // Нягтлангийн гүйлгээний зураг Drive-д хадгалах
+  if (status === "Дууссан" && user && user.role === "accountant") {
     var payFile = document.getElementById("pay-img");
     if (payFile && payFile.files && payFile.files[0]) {
       try {
@@ -1164,138 +1196,178 @@ async function showOrderDetail(orderId) {
   document.getElementById("detail-title").textContent = "Захиалга: " + orderId;
   document.getElementById("detail-body").innerHTML = '<div class="loading"><div class="spinner"></div> Ачааллаж байна...</div>';
 
-  // Find order from local cache
   var order = orders.find(function(o) { return o["ID"] === orderId; });
   
-  // Fetch order items and invoice
   try {
     var j = await jsonpFetch(API + "?action=getOrderItems&orderId=" + encodeURIComponent(orderId));
     var items = (j.success && j.data) ? j.data : [];
 
-    // Fetch invoice
     var invoiceData = null;
     try {
       var ji = await jsonpFetch(API + "?action=getInvoice&orderId=" + encodeURIComponent(orderId));
       if(ji.success && ji.data) invoiceData = ji.data;
-    } catch(e){}
+    } catch(e2){}
 
     var html = '';
-    
+    var status = order ? order["Статус"] : "";
+    var role = user ? user.role : "";
+
+    // ЗАХИАЛГЫН МЭДЭЭЛЭЛ
     if (order) {
       html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">';
-      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Захиалагч</div><div style="font-size:13px;font-weight:500">' + (order["Захиалагч"]||"—") + '</div></div>';
-      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Байршил</div><div style="font-size:13px;font-weight:500">' + (order["Байршил"]||"—") + '</div></div>';
-      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Огноо</div><div style="font-size:13px;font-weight:500">' + fmtDate(order["Огноо"]) + '</div></div>';
-      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Статус</div><div style="font-size:13px">' + sBadge(order["Статус"]) + '</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Захиалагч</div><div style="font-size:13px;font-weight:500">'+(order["Захиалагч"]||"—")+'</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Байршил</div><div style="font-size:13px;font-weight:500">'+(order["Байршил"]||"—")+'</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Огноо</div><div style="font-size:13px;font-weight:500">'+fmtDate(order["Огноо"])+'</div></div>';
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Хүний тоо</div><div style="font-size:13px;font-weight:500">'+(order["Хүний тоо"]||"—")+'</div></div>';
       if (order["Тайлбар"]) {
-        html += '<div style="grid-column:1/-1;background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Тайлбар</div><div style="font-size:13px">' + order["Тайлбар"] + '</div></div>';
+        html += '<div style="grid-column:1/-1;background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Тайлбар</div><div style="font-size:13px">'+order["Тайлбар"]+'</div></div>';
       }
       html += '</div>';
     }
 
+    // БҮТЭЭГДЭХҮҮН
     if (items.length > 0) {
       html += '<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Бүтээгдэхүүн / Сэлбэг</div>';
-      html += '<table style="width:100%;border-collapse:collapse">';
+      html += '<table style="width:100%;border-collapse:collapse;margin-bottom:16px">';
       html += '<thead><tr style="background:#f9fafb"><th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text3)">НЭР</th><th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text3)">ТОО</th><th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text3)">НЭГЖ</th></tr></thead><tbody>';
       items.forEach(function(item) {
-        html += '<tr style="border-bottom:1px solid #f3f4f6">';
-        html += '<td style="padding:9px 12px;font-size:13px">' + (item["Бүтээгдэхүүний нэр"]||item["Нэр"]||"—") + '</td>';
-        html += '<td style="padding:9px 12px;font-size:13px">' + (item["Тоо"]||"—") + '</td>';
-        html += '<td style="padding:9px 12px;font-size:13px">' + (item["Нэгж"]||"—") + '</td>';
-        html += '</tr>';
+        html += '<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:9px 12px;font-size:13px">'+(item["Бүтээгдэхүүний нэр"]||item["Нэр"]||"—")+'</td><td style="padding:9px 12px;font-size:13px">'+(item["Тоо"]||"—")+'</td><td style="padding:9px 12px;font-size:13px">'+(item["Нэгж"]||"—")+'</td></tr>';
       });
       html += '</tbody></table>';
-    } else {
-      html += '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Бүтээгдэхүүний мэдээлэл байхгүй</div>';
     }
 
-    // Show invoice info if exists
-    if (invoiceData) {
-      html += '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">';
-      html += '<div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">🧾 Invoice мэдээлэл</div>';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
-      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Нийлүүлэгч</div><div style="font-size:13px;font-weight:500">'+(invoiceData["Нийлүүлэгч"]||"—")+'</div></div>';
-      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Invoice №</div><div style="font-size:13px;font-weight:500">'+(invoiceData["Invoice дугаар"]||"—")+'</div></div>';
-      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Нийт дүн</div><div style="font-size:13px;font-weight:600;color:var(--navy)">'+(parseFloat(invoiceData["Нийт дүн"]||0).toLocaleString())+'₮</div></div>';
-      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Төлбөрийн хэлбэр</div><div style="font-size:13px;font-weight:500">'+(invoiceData["Төлбөрийн хэлбэр"]==="cash"?"💵 Бэлэн":invoiceData["Төлбөрийн хэлбэр"]==="credit"?"📋 Зээл":"🏦 Шилжүүлэг")+'</div></div>';
-      html += '</div>';
-      if(invoiceData["Зургийн линк"] && invoiceData["Зургийн линк"] !== "") {
-        html += '<div style="margin-top:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:6px">Invoice зураг</div>';
-        html += '<img src="'+driveImgUrl(invoiceData['Зургийн линк'])+'" onclick="openLightbox(this.src)" style="max-width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--border);cursor:zoom-in" onerror="this.style.display=\'none\'" />';
-        html += '</div>';
+    // ҮЙЛ ЯВЦ TIMELINE
+    html += '<div style="border-top:2px solid var(--border);padding-top:16px;margin-bottom:8px">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:14px;text-transform:uppercase;letter-spacing:.04em">📋 Үйл явц</div>';
+
+    var allStatuses = ["Шинэ","Агуулах шалгаж байна","Хангамж хүлээж буй","Захирал хүлээж буй","Нягтлан хүлээж буй","Дууссан","Татгалзсан"];
+    var statusIdx = allStatuses.indexOf(status);
+
+    function timelineStep(icon, label, isDone, isCurrent, extra) {
+      var bg = isDone ? "#f0fdf4" : isCurrent ? "#fefce8" : "#f9fafb";
+      var border = isDone ? "#86efac" : isCurrent ? "#fde047" : "#e5e7eb";
+      var dotBg = isDone ? "#22c55e" : isCurrent ? "#eab308" : "#d1d5db";
+      var dotText = isDone ? "✓" : isCurrent ? "●" : "○";
+      var s = '<div style="display:flex;gap:12px;margin-bottom:10px">';
+      s += '<div style="width:28px;height:28px;border-radius:50%;background:'+dotBg+';display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700;flex-shrink:0">'+dotText+'</div>';
+      s += '<div style="flex:1;background:'+bg+';border:1px solid '+border+';border-radius:10px;padding:10px 14px">';
+      s += '<div style="font-size:12px;font-weight:600;color:var(--text1)">'+icon+' '+label+'</div>';
+      if (extra) s += extra;
+      s += '</div></div>';
+      return s;
+    }
+
+    // 1. Захиалга үүссэн
+    html += timelineStep("📝", "Захиалга үүссэн", statusIdx >= 0, false, '');
+
+    // 2. Агуулахын менежер
+    var warehouseDone = statusIdx >= 2;
+    var warehouseCurrent = status === "Шинэ" || status === "Агуулах шалгаж байна";
+    html += timelineStep("🏭", "Агуулахын менежер зөвшөөрсөн", warehouseDone, warehouseCurrent && !warehouseDone, '');
+
+    // 3. Хангамж / Invoice
+    var supplyDone = statusIdx >= 3;
+    var supplyCurrent = status === "Хангамж хүлээж буй";
+    var supplyExtra = '';
+    if (invoiceData && statusIdx >= 3) {
+      var payType = invoiceData["Төлбөрийн хэлбэр"] === "cash" ? "💵 Бэлэн" : invoiceData["Төлбөрийн хэлбэр"] === "credit" ? "📋 Зээл" : "🏦 Шилжүүлэг";
+      var amt = parseFloat(invoiceData["Нийт дүн"]||invoiceData["Дүн"]||0);
+      supplyExtra += '<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+      supplyExtra += '<div style="font-size:11px;color:var(--text3)">Нийлүүлэгч: <strong>'+(invoiceData["Нийлүүлэгч"]||"—")+'</strong></div>';
+      supplyExtra += '<div style="font-size:11px;color:var(--text3)">Invoice №: <strong>'+(invoiceData["Invoice дугаар"]||"—")+'</strong></div>';
+      supplyExtra += '<div style="font-size:11px;color:var(--text3)">Нийт дүн: <strong style="color:#1e40af">'+amt.toLocaleString()+'₮</strong></div>';
+      supplyExtra += '<div style="font-size:11px;color:var(--text3)">Төлбөр: <strong>'+payType+'</strong></div>';
+      supplyExtra += '</div>';
+      if (invoiceData["Зургийн линк"]) {
+        supplyExtra += '<div style="margin-top:8px"><img src="'+driveImgUrl(invoiceData["Зургийн линк"])+'" onclick="openLightbox(this.src)" style="max-height:120px;max-width:100%;border-radius:6px;cursor:zoom-in;border:1px solid #e5e7eb" onerror="this.style.display='none'" /></div>';
       }
-      html += '</div>';
     }
+    html += timelineStep("📦", "Хангамж / Invoice оруулсан", supplyDone, supplyCurrent, supplyExtra);
 
-    // Add action based on role and status
+    // 4. Захирал
+    var directorDone = statusIdx >= 4;
+    var directorCurrent = status === "Захирал хүлээж буй";
+    html += timelineStep("👔", "Захирал зөвшөөрсөн", directorDone, directorCurrent, '');
+
+    // 5. Нягтлан
+    var accountantDone = status === "Дууссан";
+    var accountantCurrent = status === "Нягтлан хүлээж буй";
+    html += timelineStep("💰", "Нягтлан / Гүйлгээ", accountantDone, accountantCurrent, '');
+
+    if (status === "Татгалзсан") {
+      var s = '<div style="display:flex;gap:12px;margin-bottom:10px">';
+      s += '<div style="width:28px;height:28px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0">✕</div>';
+      s += '<div style="flex:1;background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:10px 14px"><div style="font-size:12px;font-weight:600;color:#ef4444">❌ Татгалзсан</div></div></div>';
+      html += s;
+    }
+    html += '</div>';
+
+    // ҮЙЛДЛИЙН ХЭСЭГ
     if (user && order) {
-      var status = order["Статус"];
-      var role = user.role;
 
-      // Director - approval buttons
-      if (role === "director" && status === "Шинэ") {
-        html += '<div style="margin-top:20px;border-top:2px solid var(--border);padding-top:16px;display:flex;gap:10px">' +
-          '<button onclick="detailSetStatus(\''+orderId+'\',\'Хангамж хүлээж буй\')" style="flex:1;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Зөвшөөрөх</button>' +
-          '<button onclick="detailSetStatus(\''+orderId+'\',\'Татгалзсан\')" style="flex:1;padding:11px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">❌ Татгалзах</button>' +
-        '</div>';
+      // Агуулахын менежер - Шинэ захиалга
+      if ((role === "warehouse" || role === "manager") && status === "Шинэ") {
+        html += '<div style="margin-top:16px;border-top:2px solid var(--border);padding-top:16px">';
+        html += '<div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:12px">🏭 Агуулахын үлдэгдэл шалгах</div>';
+        html += '<div style="display:flex;gap:10px">';
+        html += '<button onclick="detailSetStatus(''+orderId+'','Хангамж хүлээж буй')" style="flex:1;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Зөвшөөрөх</button>';
+        html += '<button onclick="detailSetStatus(''+orderId+'','Татгалзсан')" style="flex:1;padding:11px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">❌ Татгалзах</button>';
+        html += '</div></div>';
       }
 
-      // Supply - invoice form
+      // Хангамж - Invoice оруулах
       if (role === "supply" && status === "Хангамж хүлээж буй") {
         html += buildInvoiceForm(orderId, items);
       }
 
-      // Accountant - payment confirmation
+      // Захирал - Зөвшөөрөх
+      if (role === "director" && status === "Захирал хүлээж буй") {
+        html += '<div style="margin-top:16px;border-top:2px solid var(--border);padding-top:16px">';
+        html += '<div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:12px">👔 Захирлын зөвшөөрөл</div>';
+        if (invoiceData) {
+          var dirAmt = parseFloat(invoiceData["Нийт дүн"]||invoiceData["Дүн"]||0);
+          var dirPay = invoiceData["Төлбөрийн хэлбэр"] === "credit" ? "Зээл" : invoiceData["Төлбөрийн хэлбэр"] === "cash" ? "Бэлэн" : "Шилжүүлэг";
+          html += '<div style="background:#f9fafb;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px">';
+          html += '<strong>'+(invoiceData["Нийлүүлэгч"]||"—")+'</strong> — '+dirAmt.toLocaleString()+'₮ ('+dirPay+')</div>';
+        }
+        html += '<div style="display:flex;gap:10px">';
+        html += '<button onclick="detailSetStatus(''+orderId+'','Нягтлан хүлээж буй')" style="flex:1;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Зөвшөөрөх</button>';
+        html += '<button onclick="detailSetStatus(''+orderId+'','Татгалзсан')" style="flex:1;padding:11px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">❌ Татгалзах</button>';
+        html += '</div></div>';
+      }
+
+      // Нягтлан - Гүйлгээ
       if (role === "accountant" && status === "Нягтлан хүлээж буй") {
-        html += '<div style="margin-top:20px;border-top:2px solid var(--border);padding-top:16px">' +
-          '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">💰 Төлбөр баталгаажуулах</div>' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">' +
-            '<div><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Нийт дүн (₮)</label>' +
-            '<input id="pay-amount" type="number" placeholder="0" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;outline:none" /></div>' +
-            '<div><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Шилжүүлгийн огноо</label>' +
-            '<input id="pay-date" type="date" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;outline:none" /></div>' +
-          '</div>' +
-          '<div style="margin-bottom:14px"><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Падааны зураг</label>' +
-            '<div onclick="document.getElementById(\'pay-img\').click()" style="border:2px dashed #e5e7eb;border-radius:8px;padding:16px;text-align:center;cursor:pointer">' +
-              '<div style="font-size:20px;margin-bottom:4px">📎</div>' +
-              '<div style="font-size:12px;color:#9ca3af">Падааны зураг сонгох</div>' +
-            '</div>' +
-            '<input type="file" id="pay-img" accept="image/*,.pdf" style="display:none" onchange="document.getElementById(\'pay-fname\').textContent=\'✓ \'+this.files[0].name" />' +
-            '<div id="pay-fname" style="font-size:12px;color:var(--green2);margin-top:4px"></div>' +
-          '</div>' +
-          '<button onclick="detailSetStatus(\''+orderId+'\',\'Тээвэрлэж байна\')" style="width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">💰 Төлбөр баталгаажуулах</button>' +
-        '</div>';
-        // Set today's date
+        var isCredit = invoiceData && invoiceData["Төлбөрийн хэлбэр"] === "credit";
+        var invAmt = invoiceData ? parseFloat(invoiceData["Нийт дүн"]||invoiceData["Дүн"]||0) : 0;
+        html += '<div style="margin-top:16px;border-top:2px solid var(--border);padding-top:16px">';
+        html += '<div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:14px">💰 Гүйлгээ хийх</div>';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">';
+        html += '<div><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Нийт дүн (₮)</label><input id="pay-amount" type="number" value="'+invAmt+'" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;box-sizing:border-box" /></div>';
+        html += '<div><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Гүйлгээний огноо</label><input id="pay-date" type="date" style="width:100%;padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;box-sizing:border-box" /></div>';
+        html += '</div>';
+        html += '<div style="margin-bottom:14px"><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Гүйлгээний зураг (падаан)</label>';
+        html += '<div onclick="document.getElementById('pay-img').click()" style="border:2px dashed #e5e7eb;border-radius:8px;padding:16px;text-align:center;cursor:pointer"><div style="font-size:20px;margin-bottom:4px">📎</div><div style="font-size:12px;color:#9ca3af">Зураг сонгох</div></div>';
+        html += '<input type="file" id="pay-img" accept="image/*,.pdf" style="display:none" onchange="document.getElementById('pay-fname').textContent='✓ '+this.files[0].name" />';
+        html += '<div id="pay-fname" style="font-size:12px;color:var(--green2);margin-top:4px"></div></div>';
+        if (isCredit) {
+          html += '<div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px">⚠️ <strong>Зээл:</strong> Батлахаас өмнө дүнг хадгалахад урьдчилсан акт үүснэ.</div>';
+          html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+          html += '<button onclick="savePaymentDraft(''+orderId+'')" style="padding:11px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">💾 Дүн хадгалах (Акт)</button>';
+          html += '<button onclick="detailSetStatus(''+orderId+'','Дууссан')" style="padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">✅ Баталгаажуулах</button>';
+          html += '</div>';
+        } else {
+          html += '<button onclick="detailSetStatus(''+orderId+'','Дууссан')" style="width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Гүйлгээ баталгаажуулах</button>';
+        }
+        html += '</div>';
         setTimeout(function(){var d=document.getElementById("pay-date");if(d)d.valueAsDate=new Date();},100);
-      }
-
-      // Driver - delivery confirmation
-      if (role === "driver" && status === "Тээвэрлэж байна") {
-        html += '<div style="margin-top:20px;border-top:2px solid var(--border);padding-top:16px">' +
-          '<button onclick="detailSetStatus(\''+orderId+'\',\'Хүлээн авалт хүлээж буй\')" style="width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">🚛 Хүргэлт баталгаажуулах</button>' +
-        '</div>';
-      }
-
-      // Receiver - receipt confirmation
-      if (role === "receiver" && status === "Хүлээн авалт хүлээж буй") {
-        html += '<div style="margin-top:20px;border-top:2px solid var(--border);padding-top:16px">' +
-          '<div style="margin-bottom:14px"><label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Хүлээн авсны зураг</label>' +
-            '<div onclick="document.getElementById(\'rec-img\').click()" style="border:2px dashed #e5e7eb;border-radius:8px;padding:16px;text-align:center;cursor:pointer">' +
-              '<div style="font-size:20px;margin-bottom:4px">📎</div>' +
-              '<div style="font-size:12px;color:#9ca3af">Зураг сонгох</div>' +
-            '</div>' +
-            '<input type="file" id="rec-img" accept="image/*,.pdf" style="display:none" onchange="document.getElementById(\'rec-fname\').textContent=\'✓ \'+this.files[0].name" />' +
-            '<div id="rec-fname" style="font-size:12px;color:var(--green2);margin-top:4px"></div>' +
-          '</div>' +
-          '<button onclick="detailSetStatus(\''+orderId+'\',\'Дууссан\')" style="width:100%;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">📦 Хүлээн авсан баталгаажуулах</button>' +
-        '</div>';
       }
     }
 
     document.getElementById("detail-body").innerHTML = html;
   } catch(e) {
-    console.error('showOrderDetail error:', e);
-    document.getElementById("detail-body").innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Мэдээлэл татаж чадсангүй: '+e.message+'</div>';
+    console.error("showOrderDetail error:", e);
+    document.getElementById("detail-body").innerHTML = "<div style='text-align:center;padding:20px;color:var(--text3)'>Мэдээлэл татаж чадсангүй: "+e.message+"</div>";
   }
 }
 
