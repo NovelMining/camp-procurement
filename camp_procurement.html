@@ -1310,8 +1310,8 @@ async function showOrderDetail(orderId) {
         html += '<div style="margin-top:16px;border-top:2px solid var(--border);padding-top:16px">';
         html += '<div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:12px">🏭 Агуулахын үлдэгдэл шалгах</div>';
         html += '<div style="display:flex;gap:10px">';
-        html += '<button onclick="detailSetStatus(''+orderId+'','Хангамж хүлээж буй')" style="flex:1;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Зөвшөөрөх</button>';
-        html += '<button onclick="detailSetStatus(''+orderId+'','Татгалзсан')" style="flex:1;padding:11px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">❌ Татгалзах</button>';
+        html += '<button onclick="detailSetStatus(\''+orderId+'\',\'Хангамж хүлээж буй\')" style="flex:1;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Зөвшөөрөх</button>';
+        html += '<button onclick="detailSetStatus(\''+orderId+'\',\'Татгалзсан\')" style="flex:1;padding:11px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">❌ Татгалзах</button>';
         html += '</div></div>';
       }
 
@@ -1331,8 +1331,8 @@ async function showOrderDetail(orderId) {
           html += '<strong>'+(invoiceData["Нийлүүлэгч"]||"—")+'</strong> — '+dirAmt.toLocaleString()+'₮ ('+dirPay+')</div>';
         }
         html += '<div style="display:flex;gap:10px">';
-        html += '<button onclick="detailSetStatus(''+orderId+'','Нягтлан хүлээж буй')" style="flex:1;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Зөвшөөрөх</button>';
-        html += '<button onclick="detailSetStatus(''+orderId+'','Татгалзсан')" style="flex:1;padding:11px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">❌ Татгалзах</button>';
+        html += '<button onclick="detailSetStatus(\''+orderId+'\',\'Нягтлан хүлээж буй\')" style="flex:1;padding:11px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Зөвшөөрөх</button>';
+        html += '<button onclick="detailSetStatus(\''+orderId+'\',\'Татгалзсан\')" style="flex:1;padding:11px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">❌ Татгалзах</button>';
         html += '</div></div>';
       }
 
@@ -1353,11 +1353,11 @@ async function showOrderDetail(orderId) {
         if (isCredit) {
           html += '<div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px">⚠️ <strong>Зээл:</strong> Батлахаас өмнө дүнг хадгалахад урьдчилсан акт үүснэ.</div>';
           html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
-          html += '<button onclick="savePaymentDraft(''+orderId+'')" style="padding:11px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">💾 Дүн хадгалах (Акт)</button>';
-          html += '<button onclick="detailSetStatus(''+orderId+'','Дууссан')" style="padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">✅ Баталгаажуулах</button>';
+          html += '<button onclick="savePaymentDraft(\''+orderId+'\')" style="padding:11px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">💾 Дүн хадгалах (Акт)</button>';
+          html += '<button onclick="detailSetStatus(\''+orderId+'\',\'Дууссан\')" style="padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">✅ Баталгаажуулах</button>';
           html += '</div>';
         } else {
-          html += '<button onclick="detailSetStatus(''+orderId+'','Дууссан')" style="width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Гүйлгээ баталгаажуулах</button>';
+          html += '<button onclick="detailSetStatus(\''+orderId+'\',\'Дууссан\')" style="width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">✅ Гүйлгээ баталгаажуулах</button>';
         }
         html += '</div>';
         setTimeout(function(){var d=document.getElementById("pay-date");if(d)d.valueAsDate=new Date();},100);
