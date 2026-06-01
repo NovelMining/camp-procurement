@@ -1279,7 +1279,7 @@ async function showOrderDetail(orderId) {
       supplyExtra += '<div style="font-size:11px;color:var(--text3)">Төлбөр: <strong>'+payType+'</strong></div>';
       supplyExtra += '</div>';
       if (invoiceData["Зургийн линк"]) {
-        supplyExtra += '<div style="margin-top:8px"><img src="'+driveImgUrl(invoiceData["Зургийн линк"])+'" onclick="openLightbox(this.src)" style="max-height:120px;max-width:100%;border-radius:6px;cursor:zoom-in;border:1px solid #e5e7eb" onerror="this.style.display='none'" /></div>';
+        supplyExtra += '<div style="margin-top:8px"><img src="'+driveImgUrl(invoiceData["Зургийн линк"])+'" onclick="openLightbox(this.src)" style="max-height:120px;max-width:100%;border-radius:6px;cursor:zoom-in;border:1px solid #e5e7eb" onerror="this.style.display=\'none\'" /></div>';
       }
     }
     html += timelineStep("📦", "Хангамж / Invoice оруулсан", supplyDone, supplyCurrent, supplyExtra);
