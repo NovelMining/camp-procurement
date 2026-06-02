@@ -278,11 +278,11 @@ tr:hover td{background:#fafafa}
                 <div class="fg"><label>Огноо</label><input type="date" id="cs-date" /></div>
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                <div style="font-size:12px;font-weight:600;color:var(--text2)">Хангамж хэрэгсэл нэмэх</div>
+                <div style="font-size:12px;font-weight:600;color:var(--text2)">Хангамжийн зүйлс</div>
                 <button class="btn btn-outline btn-sm" onclick="addRow('cs-items','supply')">+ Нэмэх</button>
               </div>
-
-              <div class="items-hd"><span>Барааны нэр</span><span>Тоо</span><span>Тайлбар</span><span></span></div>
+              <input id="cs-search" type="text" placeholder="🔍 Хайх..." oninput="filterDrops('supply',this.value)" style="width:100%;padding:7px 11px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;outline:none;margin-bottom:10px" />
+              <div class="items-hd"><span>Хангамжийн зүйл</span><span>Тоо</span><span>Нэгж</span><span></span></div>
               <div id="cs-items"></div>
               <div id="cs-empty" style="padding:14px 0;text-align:center;color:var(--text3);font-size:12px">Жагсаалт хоосон байна</div>
               <div class="fg" style="margin-top:14px"><label>Тэмдэглэл</label><textarea id="cs-note" placeholder="Нэмэлт тайлбар..."></textarea></div>
@@ -858,49 +858,13 @@ function addRow(containerId,type){
   const id=rowIds[type]++;
   const d=document.createElement("div");
   d.className="item-row";d.id=`row-${type}-${id}`;
-  if(type==="supply"){
-    const items=SUPPLY_ITEMS;
-    d.innerHTML=`
-      <div style="position:relative">
-        <input class="row-name-supply" type="text" placeholder="Барааны нэр бичнэ..." autocomplete="off"
-          oninput="showSupplySuggest(this,'${id}')"
-          onfocus="showSupplySuggest(this,'${id}')"
-          style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;outline:none" />
-        <div id="sugg-${id}" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:7px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
-      </div>
-      <input type="number" min="0" step="0.1" placeholder="0" />
-      <input type="text" placeholder="Тайлбар..." />
-      <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
-    `;
-  } else {
-    d.innerHTML=`
-      <select class="row-sel-${type}">${prodOpts(type)}</select>
-      <input type="number" min="0" step="0.1" placeholder="0" />
-      <select>${UNITS.map(u=>`<option>${u}</option>`).join("")}</select>
-      <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
-    `;
-  }
+  d.innerHTML=`
+    <select class="row-sel-${type}">${prodOpts(type)}</select>
+    <input type="number" min="0" step="0.1" placeholder="0" />
+    <select>${UNITS.map(u=>`<option>${u}</option>`).join("")}</select>
+    <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
+  `;
   c.appendChild(d);
-}
-
-function showSupplySuggest(input, id) {
-  var val = input.value.trim().toLowerCase();
-  var box = document.getElementById("sugg-"+id);
-  var filtered = val.length === 0 
-    ? SUPPLY_ITEMS.slice(0, 20)
-    : SUPPLY_ITEMS.filter(function(s){ return s.toLowerCase().indexOf(val) > -1; }).slice(0, 15);
-  if(!filtered.length){ box.style.display="none"; return; }
-  box.innerHTML = filtered.map(function(s){
-    return '<div onclick="selectSupplyItem(this,''+id+'')" style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f3f4f6" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">'+s+'</div>';
-  }).join("");
-  box.style.display = "block";
-  document.addEventListener("click", function hide(e){ if(!box.contains(e.target) && e.target!==input){ box.style.display="none"; document.removeEventListener("click",hide); }});
-}
-
-function selectSupplyItem(el, id) {
-  var row = document.getElementById("row-supply-"+id);
-  if(row) row.querySelector("input[type=text]").value = el.textContent;
-  document.getElementById("sugg-"+id).style.display = "none";
 }
 function removeRow(type,id,cid,eid){
   const el=document.getElementById(`row-${type}-${id}`);
@@ -942,21 +906,10 @@ async function submitOrder(type){
   const rows=document.querySelectorAll(`#${isFood?"fo-items":"cs-items"} .item-row`);
   const items=[];
   rows.forEach(r=>{
-    if(!isFood){
-      const nameInput=r.querySelector("input[type=text]");
-      const num=r.querySelector("input[type=number]");
-      const allTexts=r.querySelectorAll("input[type=text]");
-      const note=allTexts.length>1?allTexts[1]:null;
-      const name=nameInput?nameInput.value.trim():"";
-      const qty=num?parseFloat(num.value)||0:0;
-      const u=note?note.value.trim():"";
-      if(name&&qty)items.push({name,qty,unit:u});
-    } else {
-      const name=r.querySelector("select").value;
-      const qty=r.querySelectorAll("input")[0].value;
-      const unit=r.querySelectorAll("select")[1].value;
-      if(name&&qty)items.push({name,qty,unit});
-    }
+    const name=r.querySelector("select").value;
+    const qty=r.querySelectorAll("input")[0].value;
+    const unit=r.querySelectorAll("select")[1].value;
+    if(name&&qty)items.push({name,qty,unit});
   });
   if(!items.length){toast("Зүйл нэмнэ үү","error");return;}
   toast("Илгээж байна...","info");
