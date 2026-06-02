@@ -891,7 +891,7 @@ function showSupplySuggest(input, id) {
     : SUPPLY_ITEMS.filter(function(s){ return s.toLowerCase().indexOf(val) > -1; }).slice(0, 15);
   if(!filtered.length){ box.style.display="none"; return; }
   box.innerHTML = filtered.map(function(s){
-    return '<div onclick="selectSupplyItem(this,''+id+'')" style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f3f4f6" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">'+s+'</div>';
+    return '<div onclick="selectSupplyItem(this,\''+id+'\')" style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f3f4f6" onmouseover="this.style.background=\'#f0fdf4\'" onmouseout="this.style.background=\'\'">'+s+'</div>';
   }).join("");
   box.style.display = "block";
   document.addEventListener("click", function hide(e){ if(!box.contains(e.target) && e.target!==input){ box.style.display="none"; document.removeEventListener("click",hide); }});
