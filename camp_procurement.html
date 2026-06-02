@@ -296,33 +296,7 @@ tr:hover td{background:#fafafa}
 
         <!-- TECH / MINE SUPPLY placeholders -->
         <div id="page-tech" class="page"><div class="card"><div class="card-bd"><div class="empty"><div class="empty-ico">⚙️</div>Техникийн захиалга — удахгүй нэмэгдэнэ</div></div></div></div>
-        <div id="page-mineSupply" class="page">
-          <div class="card">
-            <div class="card-hd">
-              <div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">🔧</span><div class="card-title">Уурхайн хангамжийн захиалга</div></div>
-              <span class="pill p-blue">Уурхай</span>
-            </div>
-            <div class="card-bd">
-              <div class="fg3" style="margin-bottom:0">
-                <div class="fg"><label>Захиалагч нэр</label><input id="ms-name" placeholder="Овог нэр" /></div>
-                <div class="fg"><label>Байршил / Хэлтэс</label><input id="ms-loc" placeholder="жн: Уурхай-А" /></div>
-                <div class="fg"><label>Огноо</label><input type="date" id="ms-date" /></div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;margin-top:14px">
-                <div style="font-size:12px;font-weight:600;color:var(--text2)">Хангамж хэрэгсэл нэмэх</div>
-                <button class="btn btn-outline btn-sm" onclick="addRow('ms-items','minesupply')">+ Нэмэх</button>
-              </div>
-              <div class="items-hd"><span>Барааны нэр</span><span>Тоо</span><span>Тайлбар</span><span></span></div>
-              <div id="ms-items"></div>
-              <div id="ms-empty" style="padding:14px 0;text-align:center;color:var(--text3);font-size:12px">Жагсаалт хоосон байна</div>
-              <div class="fg" style="margin-top:14px"><label>Тэмдэглэл</label><textarea id="ms-note" placeholder="Нэмэлт тайлбар..."></textarea></div>
-              <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-                <button class="btn btn-outline" onclick="resetForm('minesupply')">✕ Цэвэрлэх</button>
-                <button class="btn btn-primary" onclick="submitOrder('minesupply')">✈ Захиалга илгээх</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div id="page-mineSupply" class="page"><div class="card"><div class="card-bd"><div class="empty"><div class="empty-ico">🔧</div>Уурхайн хангамж — удахгүй нэмэгдэнэ</div></div></div></div>
 
         <!-- HISTORY -->
         <div id="page-history" class="page">
@@ -487,7 +461,7 @@ const SUPPLY_ITEMS = ["Бор цаас","Нэг удаа бээлий","Бок 5
 const UNITS = ["ш","кг","г","л","мл","хайрцаг","уут","боодол","метр","иш","сав","хос"];
 const ROLES = {orderer:"Захиалагч",director:"Захирал",accountant:"Нягтлан",supply:"Хангамжийн ажилтан",driver:"Тээвэрлэгч",receiver:"Хүлээн авагч",admin:"IT Admin"};
 
-let user=null, orders=[], rowIds={food:0,supply:0,minesupply:0}, filters={food:"",supply:""};
+let user=null, orders=[], rowIds={food:0,supply:0}, filters={food:"",supply:""};
 let currentPage=1, totalPages=1, pageSize=20, totalOrders=0;
 var currentUser = null;
 
@@ -619,7 +593,6 @@ function applyNav(){
   function s(id,show){ var el=document.getElementById(id); if(el) el.style.display=show?"flex":"none"; }
   s("n-food", r==="orderer");
   s("n-supply", r==="orderer");
-  var nMine = document.getElementById("n-minesupply"); if(nMine) nMine.style.display = r==="orderer"?"":"none";
   s("n-appr", r==="director");
   s("n-pay", r==="accountant");
   s("n-inv", r==="supply");
@@ -880,54 +853,18 @@ function filterDrops(type,val){
 }
 function addRow(containerId,type){
   const c=document.getElementById(containerId);
-  const emptyIdMap={"fo-items":"fo-empty","cs-items":"cs-empty","ms-items":"ms-empty"};
-  const emptyId=emptyIdMap[containerId]||"cs-empty";
+  const emptyId=containerId==="fo-items"?"fo-empty":"cs-empty";
   document.getElementById(emptyId).style.display="none";
   const id=rowIds[type]++;
   const d=document.createElement("div");
   d.className="item-row";d.id=`row-${type}-${id}`;
-  if(type==="supply"||type==="minesupply"){
-    d.innerHTML=`
-      <div style="position:relative">
-        <input class="row-name-${type}" type="text" placeholder="Барааны нэр бичнэ..." autocomplete="off"
-          oninput="showSupplySuggest(this,'${type}','${id}')"
-          onfocus="showSupplySuggest(this,'${type}','${id}')"
-          style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;outline:none" />
-        <div id="sugg-${type}-${id}" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:7px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
-      </div>
-      <input type="number" min="0" step="0.1" placeholder="0" />
-      <input type="text" placeholder="Тайлбар..." />
-      <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
-    `;
-  } else {
-    d.innerHTML=`
-      <select class="row-sel-${type}">${prodOpts(type)}</select>
-      <input type="number" min="0" step="0.1" placeholder="0" />
-      <select>${UNITS.map(u=>`<option>${u}</option>`).join("")}</select>
-      <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
-    `;
-  }
+  d.innerHTML=`
+    <select class="row-sel-${type}">${prodOpts(type)}</select>
+    <input type="number" min="0" step="0.1" placeholder="0" />
+    <select>${UNITS.map(u=>`<option>${u}</option>`).join("")}</select>
+    <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
+  `;
   c.appendChild(d);
-}
-
-function showSupplySuggest(input, type, id) {
-  var val = input.value.trim().toLowerCase();
-  var box = document.getElementById("sugg-"+type+"-"+id);
-  var filtered = val.length === 0
-    ? SUPPLY_ITEMS.slice(0, 20)
-    : SUPPLY_ITEMS.filter(function(s){ return s.toLowerCase().indexOf(val) > -1; }).slice(0, 15);
-  if(!filtered.length){ box.style.display="none"; return; }
-  box.innerHTML = filtered.map(function(s){
-    return '<div onclick="selectSupplyItem(this,\''+type+'\',\''+id+'\')" style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f3f4f6" onmouseover="this.style.background=\'#f0fdf4\'" onmouseout="this.style.background=\'\'">' + s + '</div>';
-  }).join("");
-  box.style.display = "block";
-  document.addEventListener("click", function hide(e){ if(!box.contains(e.target) && e.target!==input){ box.style.display="none"; document.removeEventListener("click",hide); }});
-}
-
-function selectSupplyItem(el, type, id) {
-  var row = document.getElementById("row-"+type+"-"+id);
-  if(row) row.querySelector("input[type=text]").value = el.textContent;
-  document.getElementById("sugg-"+type+"-"+id).style.display = "none";
 }
 function removeRow(type,id,cid,eid){
   const el=document.getElementById(`row-${type}-${id}`);
@@ -947,15 +884,6 @@ function resetForm(type){
     document.getElementById("fo-empty").style.display="block";
     rowIds.food=0;
     addRow("fo-items","food");addRow("fo-items","food");addRow("fo-items","food");
-  } else if(type==="minesupply"){
-    document.getElementById("ms-name").value=user?.name||"";
-    document.getElementById("ms-loc").value="";
-    document.getElementById("ms-date").valueAsDate=new Date();
-    document.getElementById("ms-note").value="";
-    document.getElementById("ms-items").innerHTML="";
-    document.getElementById("ms-empty").style.display="block";
-    rowIds.minesupply=0;
-    addRow("ms-items","minesupply");addRow("ms-items","minesupply");addRow("ms-items","minesupply");
   } else {
     document.getElementById("cs-name").value=user?.name||"";
     document.getElementById("cs-loc").value="";
@@ -965,19 +893,17 @@ function resetForm(type){
     document.getElementById("cs-empty").style.display="block";
     rowIds.supply=0;
     addRow("cs-items","supply");addRow("cs-items","supply");addRow("cs-items","supply");
-    addRow("ms-items","minesupply");addRow("ms-items","minesupply");addRow("ms-items","minesupply");
   }
 }
 
 async function submitOrder(type){
   const isFood=type==="food";
-  const isMineSupply=type==="minesupply";
-  const orderer=document.getElementById(isFood?"fo-name":isMineSupply?"ms-name":"cs-name").value.trim();
-  const loc=document.getElementById(isFood?"fo-loc":isMineSupply?"ms-loc":"cs-loc").value.trim();
-  const date=document.getElementById(isFood?"fo-date":isMineSupply?"ms-date":"cs-date").value;
+  const orderer=document.getElementById(isFood?"fo-name":"cs-name").value.trim();
+  const loc=document.getElementById(isFood?"fo-loc":"cs-loc").value.trim();
+  const date=document.getElementById(isFood?"fo-date":"cs-date").value;
   const count=isFood?document.getElementById("fo-count").value:"1";
   if(!orderer||!loc||!date){toast("Бүх талбарыг бөглөнө үү","error");return;}
-  const rows=document.querySelectorAll(`#${isFood?"fo-items":isMineSupply?"ms-items":"cs-items"} .item-row`);
+  const rows=document.querySelectorAll(`#${isFood?"fo-items":"cs-items"} .item-row`);
   const items=[];
   rows.forEach(r=>{
     const name=r.querySelector("select").value;
@@ -988,7 +914,7 @@ async function submitOrder(type){
   if(!items.length){toast("Зүйл нэмнэ үү","error");return;}
   toast("Илгээж байна...","info");
   try{
-    const r=await fetch(API,{method:"POST",body:JSON.stringify({action:"saveOrder",orderer,location:loc,date,headCount:count,notes:document.getElementById(isFood?"fo-note":isMineSupply?"ms-note":"cs-note").value,items,orderType:isFood?"Хоол хүнс":isMineSupply?"Уурхайн хангамж":"Хангамж"})});
+    const r=await fetch(API,{method:"POST",body:JSON.stringify({action:"saveOrder",orderer,location:loc,date,headCount:count,notes:document.getElementById(isFood?"fo-note":"cs-note").value,items,orderType:isFood?"Хоол хүнс":"Хангамж"})});
     const j=await r.json();
     if(j.success){toast("Захиалга илгээгдлээ! "+j.id,"success");resetForm(type);loadOrders();}
     else toast("Алдаа: "+j.error,"error");
