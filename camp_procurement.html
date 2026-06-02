@@ -880,18 +880,54 @@ function filterDrops(type,val){
 }
 function addRow(containerId,type){
   const c=document.getElementById(containerId);
-  const emptyId=containerId==="fo-items"?"fo-empty":"cs-empty";
+  const emptyIdMap={"fo-items":"fo-empty","cs-items":"cs-empty","ms-items":"ms-empty"};
+  const emptyId=emptyIdMap[containerId]||"cs-empty";
   document.getElementById(emptyId).style.display="none";
   const id=rowIds[type]++;
   const d=document.createElement("div");
   d.className="item-row";d.id=`row-${type}-${id}`;
-  d.innerHTML=`
-    <select class="row-sel-${type}">${prodOpts(type)}</select>
-    <input type="number" min="0" step="0.1" placeholder="0" />
-    <select>${UNITS.map(u=>`<option>${u}</option>`).join("")}</select>
-    <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
-  `;
+  if(type==="supply"||type==="minesupply"){
+    d.innerHTML=`
+      <div style="position:relative">
+        <input class="row-name-${type}" type="text" placeholder="Барааны нэр бичнэ..." autocomplete="off"
+          oninput="showSupplySuggest(this,'${type}','${id}')"
+          onfocus="showSupplySuggest(this,'${type}','${id}')"
+          style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;outline:none" />
+        <div id="sugg-${type}-${id}" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:7px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+      </div>
+      <input type="number" min="0" step="0.1" placeholder="0" />
+      <input type="text" placeholder="Тайлбар..." />
+      <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
+    `;
+  } else {
+    d.innerHTML=`
+      <select class="row-sel-${type}">${prodOpts(type)}</select>
+      <input type="number" min="0" step="0.1" placeholder="0" />
+      <select>${UNITS.map(u=>`<option>${u}</option>`).join("")}</select>
+      <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
+    `;
+  }
   c.appendChild(d);
+}
+
+function showSupplySuggest(input, type, id) {
+  var val = input.value.trim().toLowerCase();
+  var box = document.getElementById("sugg-"+type+"-"+id);
+  var filtered = val.length === 0
+    ? SUPPLY_ITEMS.slice(0, 20)
+    : SUPPLY_ITEMS.filter(function(s){ return s.toLowerCase().indexOf(val) > -1; }).slice(0, 15);
+  if(!filtered.length){ box.style.display="none"; return; }
+  box.innerHTML = filtered.map(function(s){
+    return '<div onclick="selectSupplyItem(this,\''+type+'\',\''+id+'\')" style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f3f4f6" onmouseover="this.style.background=\'#f0fdf4\'" onmouseout="this.style.background=\'\'">' + s + '</div>';
+  }).join("");
+  box.style.display = "block";
+  document.addEventListener("click", function hide(e){ if(!box.contains(e.target) && e.target!==input){ box.style.display="none"; document.removeEventListener("click",hide); }});
+}
+
+function selectSupplyItem(el, type, id) {
+  var row = document.getElementById("row-"+type+"-"+id);
+  if(row) row.querySelector("input[type=text]").value = el.textContent;
+  document.getElementById("sugg-"+type+"-"+id).style.display = "none";
 }
 function removeRow(type,id,cid,eid){
   const el=document.getElementById(`row-${type}-${id}`);
