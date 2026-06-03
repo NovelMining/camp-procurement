@@ -510,8 +510,8 @@ function driveImgUrl(url) {
 
 // Зургийг автоматаар жижигсгэх функц
 function compressImage(file, maxWidth, quality) {
-  maxWidth = maxWidth || 1200;
-  quality = quality || 0.75;
+  maxWidth = maxWidth || 800;
+  quality = quality || 0.6;
   return new Promise(function(resolve) {
     var reader = new FileReader();
     reader.onload = function(e) {
@@ -896,7 +896,18 @@ function addRow(containerId,type){
         <div id="sugg-${type}-${id}" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:7px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
       </div>
       <input type="number" min="0" step="0.1" placeholder="0" />
-      <input type="text" placeholder="Тайлбар..." />
+      <select style="padding:6px 9px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;outline:none;background:var(--bg);color:var(--text1)">
+        <option>ш</option>
+        <option>кг</option>
+        <option>литр</option>
+        <option>хайрцаг</option>
+        <option>уут</option>
+        <option>м</option>
+        <option>м²</option>
+        <option>тн</option>
+        <option>ширхэг</option>
+        <option>компл</option>
+      </select>
       <button class="del-btn" onclick="removeRow('${type}','${id}','${containerId}','${emptyId}')">✕</button>
     `;
   } else {
@@ -980,9 +991,19 @@ async function submitOrder(type){
   const rows=document.querySelectorAll(`#${isFood?"fo-items":isMineSupply?"ms-items":"cs-items"} .item-row`);
   const items=[];
   rows.forEach(r=>{
-    const name=r.querySelector("select").value;
-    const qty=r.querySelectorAll("input")[0].value;
-    const unit=r.querySelectorAll("select")[1].value;
+    let name, qty, unit;
+    if(!isFood && (isMineSupply || type==="supply")) {
+      const nameInput = r.querySelector("input[type=text]");
+      const numInput = r.querySelector("input[type=number]");
+      const unitSel = r.querySelector("select");
+      name = nameInput ? nameInput.value.trim() : "";
+      qty = numInput ? numInput.value : "0";
+      unit = unitSel ? unitSel.value : "ш";
+    } else {
+      name = r.querySelector("select").value;
+      qty = r.querySelectorAll("input")[0].value;
+      unit = r.querySelectorAll("select")[1].value;
+    }
     if(name&&qty)items.push({name,qty,unit});
   });
   if(!items.length){toast("Зүйл нэмнэ үү","error");return;}
